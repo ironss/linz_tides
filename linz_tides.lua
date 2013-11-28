@@ -34,7 +34,7 @@ end
 
 
 -- Extract tidal data from an open file
-local function read_linz_tide_file(f)
+local function read_linz_tide_file(f, events)
    local l1 = f:read('*l')
    local _, port, latitude, longitude = l1:match('^(.-),(.-),(.-),(.-)%c*$')
    local l2 = f:read('*l')
@@ -42,7 +42,7 @@ local function read_linz_tide_file(f)
    local tz, _ = l3:match('^(.-),(.-)%c*$')
  
 --   print(port, tz, latitude, '"'..longitude..'"', tz)
-   local events = {}
+   local events = events or {}
    for l in f:lines() do
       local day, _, month, year, t1, h1, t2, h2, t3, h3, t4, h4 = l:match('^(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-)%c*$')
       events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1 }
@@ -56,9 +56,9 @@ local function read_linz_tide_file(f)
    return events
 end
 
-local function read_linz_tide_filename(filename)
+local function read_linz_tide_filename(filename, events)
    local f = io.open(filename)
-   local events = read_linz_tide_file(f)
+   local events = read_linz_tide_file(f, events)
    for i, _ in ipairs(events) do
       if events[i] ~= nil and events[i+1] ~= nil then
          if events[i].height > events[i+1].height then
