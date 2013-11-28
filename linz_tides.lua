@@ -62,7 +62,7 @@ end
 
 local function print_linz_events(events)
    for _, e in ipairs(events) do
-      print(e.port, e.date, e.time, e.tz, e.height, e.event_type)
+      print(e.port, os.date('%Y-%m-%d_%H:%M', e.date), e.tz, e.height) -- , e.event_type)
    end
 end
 
@@ -87,12 +87,13 @@ local function calculate_secondary_events(primary_events, secondary_port_name)
    local events = {}
    for _, primary_event in ipairs(primary_events) do
       if primary_event.port == secondary_port.reference then
-
          local ev = { port=secondary_port.name, tz=primary_event.tz, event_type=primary_event.event_type }
          if ev.event_type == 'high' then
             ev.date = primary_event.date + secondary_port.high_delta_mean
+            ev.height = primary_event.height
          elseif ev.event_type == 'low' then
             ev.date = primary_event.date + secondary_port.low_delta_mean
+            ev.height = primary_event.height
          end
          events[#events+1] = ev
       end
@@ -104,6 +105,7 @@ end
 
 M.parse_tide_file = parse_linz_tide_filename
 M.calculate_secondary_events = calculate_secondary_events
+M.print_events = print_linz_events
 
 return M
 

@@ -56,3 +56,6 @@ end
 
 LuaUnit:run()
 
+--linz.print_events(events)
+--linz.print_events(motueka_events)
+
