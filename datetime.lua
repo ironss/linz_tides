@@ -37,10 +37,11 @@
 -- local time8 = time7 + 60                   -- add a number of seconds
 
 
+-- TODO: Better support for timezone
+-- TODO: Support for parsing a string
+
 
 local M={}
-
---local dateparse = require('dateparse')
 
 local tzoffsets = 
 {
@@ -49,9 +50,10 @@ local tzoffsets =
    ['SAST'] =  2*3600,
 }
 
+-- Format a timestamp
 local function datetime_format(format, timestamp, tz)
    local format = format or '%Y-%m-%dT%H:%M:%SZ'
-   local time = timestamp.time_utc
+   local time = timestamp.time_utc -- TODO: or time now if not specified
    if tz ~= nil then
       local offset = tzoffsets[tz] or 0
       time = time + offset
@@ -59,6 +61,7 @@ local function datetime_format(format, timestamp, tz)
    local output = os.date(format, time)
    return output
 end
+
 
 local function datetime_clone(table)
    local timestamp={}
@@ -104,6 +107,7 @@ local function datetime_new(value, ...)
    
    return timestamp
 end
+
 
 M.new = datetime_new
 M.format = datetime_format
