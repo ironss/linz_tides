@@ -12,11 +12,11 @@ local M={}
  
 local ports = 
 {
-   { no='6458' , name='Nelson'             , latitdue='', longitude='', reference=''                                                       , msl='2.32'             },
-   { no='6455' , name='Astrolabe Roadstead', latitude='', longitude='', reference='Nelson', high_delta_mean='-0020', low_delta_mean='-0020', msl='2.5', ratio=1.21, }, 
-   { no='6456' , name='Kaiteriteri'        , latitude='', longitude='', reference='Nelson', high_delta_mean='+0001', low_delta_mean='+0005', msl='2.1', ratio=0.95, },
-   { no='6455b', name='Mapua'              , latitude='', longitude='', reference='Nelson', high_delta_mean='+0019', low_delta_mean='+0019', msl='2.4', ratio=0.92, },
-   { no='6455a', name='Motueka'            , latitdue='', longitude='', reference='Nelson', high_delta_mean='+0005', low_delta_mean='+0019', msl='2.4', ratio=0.95, },
+   ['Nelson'             ]={ no='6458' , name='Nelson'             , latitdue='', longitude='', reference=''                                                       , msl='2.32'             },
+   ['Astrolabe Roadstead']={ no='6455' , name='Astrolabe Roadstead', latitude='', longitude='', reference='Nelson', high_delta_mean='-0020', low_delta_mean='-0020', msl='2.5', ratio=1.21, }, 
+   ['Kaiteriteri'        ]={ no='6456' , name='Kaiteriteri'        , latitude='', longitude='', reference='Nelson', high_delta_mean='+0001', low_delta_mean='+0005', msl='2.1', ratio=0.95, },
+   ['Mapua'              ]={ no='6455b', name='Mapua'              , latitude='', longitude='', reference='Nelson', high_delta_mean='+0019', low_delta_mean='+0019', msl='2.4', ratio=0.92, },
+   ['Motueka'            ]={ no='6455a', name='Motueka'            , latitdue='', longitude='', reference='Nelson', high_delta_mean='+0005', low_delta_mean='+0019', msl='2.4', ratio=0.95, },
 }
 
 
@@ -66,27 +66,44 @@ local function print_linz_events(events)
    end
 end
 
-local function calculate_secondary_events(primary_events, secondary_port)
+local function time_offset(offset)
+   local sign = offset:sub(1, 1)
+   local hour = offset:sub(2, 3)
+   local minute = offset:sub(4, 5)
+   local offset_in_seconds = (tonumber(sign .. hour) * 60 + tonumber(sign .. minute)) * 60
+   return offset_in_seconds
+end
+
+local function calculate_secondary_events(primary_events, secondary_port_name)
+   local secondary_port = ports[secondary_port_name]
+
+   if type(secondary_port.high_delta_mean) == 'string' then
+      secondary_port.high_delta_mean = time_offset(secondary_port.high_delta_mean)
+   end
+   if type(secondary_port.low_delta_mean) == 'string' then
+      secondary_port.low_delta_mean = time_offset(secondary_port.low_delta_mean)
+   end
+   
    local events = {}
    for _, primary_event in ipairs(primary_events) do
-      if primary_event.port == secondary_port then
-         local ev = { port=secondary_port, date=primary_event.date, tz=primary_event.tz, event_type=primary_event.event_type }
+      if primary_event.port == secondary_port.reference then
+
+         local ev = { port=secondary_port.name, tz=primary_event.tz, event_type=primary_event.event_type }
          if ev.event_type == 'high' then
-            -- Calculate offset
+            ev.date = primary_event.date + secondary_port.high_delta_mean
          elseif ev.event_type == 'low' then
-            -- Calculate offset
+            ev.date = primary_event.date + secondary_port.low_delta_mean
          end
+         events[#events+1] = ev
       end
    end
+   
+   return events
 end
 
 
---if type(arg[1] == 'string') then
---   local events = parse_linz_tide_filename(arg[1])
---   print_linz_events(events)
---end
-
 M.parse_tide_file = parse_linz_tide_filename
+M.calculate_secondary_events = calculate_secondary_events
 
 return M
 

@@ -32,5 +32,13 @@ function Test_linz_parsing:test_height_last()
 end
 
 
+
+Test_secondary_ports = {}
+secondary_events = linz.calculate_secondary_events(events, 'Astrolabe Roadstead')
+
+function Test_secondary_ports:test_port_name()
+   assert_equals(secondary_events[1].port, 'Astrolabe Roadstead')
+end
+
 LuaUnit:run()
 
