@@ -9,6 +9,7 @@
 
 local M={}
 
+ 
 local ports = 
 {
    { no='6458' , name='Nelson'             , latitdue='', longitude='', reference=''                                                       , msl='2.32'             },
@@ -31,12 +32,12 @@ local function parse_linz_tide_file(f)
    local events = {}
    for l in f:lines() do
       local day, _, month, year, t1, h1, t2, h2, t3, h3, t4, h4 = l:match('^(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-)%c*$')
-      events[#events+1] = { port=port, date=year..'-'..month..'-'..day, tz=tz, time=t1, height=h1 }
-      events[#events+1] = { port=port, date=year..'-'..month..'-'..day, tz=tz, time=t2, height=h2 }
-      events[#events+1] = { port=port, date=year..'-'..month..'-'..day, tz=tz, time=t3, height=h3 }
+      events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5)}, tz=tz, height=h1 }
+      events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5)}, tz=tz, height=h2 }
+      events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5)}, tz=tz, height=h3 }
       if (t4 ~= '') then
 --         print (port, year, month, day, tz, t4, h4)
-         events[#events+1] = { port=port, date=year..'-'..month..'-'..day, tz=tz, time=t4, height=h4 }
+         events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5)}, tz=tz, height=h4 }
       end   
    end
    return events
@@ -80,10 +81,12 @@ local function calculate_secondary_events(primary_events, secondary_port)
 end
 
 
-if type(arg[1] == 'string') then
-   local events = parse_linz_tide_filename(arg[1])
-   print_linz_events(events)
-end
+--if type(arg[1] == 'string') then
+--   local events = parse_linz_tide_filename(arg[1])
+--   print_linz_events(events)
+--end
+
+M.parse_tide_file = parse_linz_tide_filename
 
 return M
 
