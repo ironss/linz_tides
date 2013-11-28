@@ -14,11 +14,11 @@ function Test_linz_parsing:test_port_name()
 end
 
 function Test_linz_parsing:test_date_first()
-   assert_equals(events[1].timestamp.time_utc, os.time{year='2013', month='01', day='01', hour='05', min='44'})
+   assert_equals(events[1].timestamp.time_utc, os.time{year='2013', month='01', day='01', hour='05', min='44'} - 12*3600)
 end
 
 function Test_linz_parsing:test_date_last()
-   assert_equals(events[#events].timestamp.time_utc, os.time{year='2013', month='12', day='31', hour='20', min='51'})
+   assert_equals(events[#events].timestamp.time_utc, os.time{year='2013', month='12', day='31', hour='20', min='51'} - 12*3600)
 end
 
 function Test_linz_parsing:test_height_first()
@@ -42,15 +42,15 @@ function Test_secondary_ports:test_port_name()
 end
 
 function Test_secondary_ports:test_low_offset_negative()
-   assert_equals(astrolabe_events[1].timestamp.time_utc, os.time{year='2013', month='01', day='01', hour='05', min='24'})
+   assert_equals(astrolabe_events[1].timestamp.time_utc, os.time{year='2013', month='01', day='01', hour='05', min='24'} - 12*3600)
 end
 
 function Test_secondary_ports:test_low_offset_positive()
-   assert_equals(motueka_events[1].timestamp.time_utc, os.time{year='2013', month='01', day='01', hour='06', min='03'})
+   assert_equals(motueka_events[1].timestamp.time_utc, os.time{year='2013', month='01', day='01', hour='06', min='03'} - 12*3600)
 end
 
 function Test_secondary_ports:test_high_offset_positive()
-   assert_equals(motueka_events[#events].timestamp.time_utc, os.time{year='2013', month='12', day='31', hour='20', min='56'})
+   assert_equals(motueka_events[#events].timestamp.time_utc, os.time{year='2013', month='12', day='31', hour='20', min='56'} - 12*3600)
 end
 
 
