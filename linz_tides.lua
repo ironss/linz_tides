@@ -9,13 +9,72 @@
 -- TODO: Tide height correction for secondary ports
 
 
+
+-- Date-time functionality
+
 local M={}
 
+--local dateparse = require('dateparse')
+
+local function datetime_format(format, timestamp)
+end
+
+local function datetime_clone(table)
+   for i, v in pairs(table) do
+      timestamp[i] = v
+   end
+   return timestamp
+end
+
+
+local function datetime_create(time_utc, ticks_utc, ticks_per_second, preferred_tz)
+   local timestamp={_type='datetime'}
+   
+   timestamp.time_utc = time_utc
+   timestamp.ticks_utc = ticks_utc or nil
+   timestamp.ticks_per_second = ticks_per_second or 1000000
+   timestamp.preferred_tz = preferred_tz or ''
+
+   timestamp.format = function(self, format)
+      return datetime_format(format, self)
+   end
+
+   return timestamp
+end
+
+
+local function datetime_new(value, ...)
+   local timestamp
+   
+   if type(value) == 'table' then
+      if table._type == 'datetime' then
+         timestamp = datetime_clone(value)
+      else
+         timestamp = datetime_create(os.time(value), 0, 1000000, value.tz)
+      end
+   elseif type(value) == 'number' then
+      timestamp = datetime_create(value, 0)
+   end
+   
+   return timestamp
+end
+
+M.new = datetime_new
+M.format = datetime_format
+
+local datetime = M
+
+
+
+
+
+local M={}
  
 local ports = 
 {
    ['Nelson'             ]={ no='6458' , name='Nelson'             , latitdue='', longitude='', reference=''       ,
-                                                                            , msl='2.32'                          },
+                                                                              msl='2.32'                          },
+                                                                              
    ['Astrolabe Roadstead']={ no='6455' , name='Astrolabe Roadstead', latitude='', longitude='', reference='Nelson' ,
                              high_delta_mean='-0020', low_delta_mean='-0020', msl='2.5', ratio=1.21,              }, 
    ['Kaiteriteri'        ]={ no='6456' , name='Kaiteriteri'        , latitude='', longitude='', reference='Nelson' , 
@@ -39,12 +98,12 @@ local function parse_linz_tide_file(f)
    local events = {}
    for l in f:lines() do
       local day, _, month, year, t1, h1, t2, h2, t3, h3, t4, h4 = l:match('^(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-)%c*$')
-      events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5)}, tz=tz, height=h1 }
-      events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5)}, tz=tz, height=h2 }
-      events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5)}, tz=tz, height=h3 }
+      events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1 }
+      events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=h2 }
+      events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=h3 }
       if (t4 ~= '') then
 --         print (port, year, month, day, tz, t4, h4)
-         events[#events+1] = { port=port, date=os.time{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5)}, tz=tz, height=h4 }
+         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=h4 }
       end   
    end
    return events
@@ -69,7 +128,7 @@ end
 
 local function print_linz_events(events)
    for _, e in ipairs(events) do
-      print(e.port, os.date('%Y-%m-%d_%H:%M', e.date), e.tz, e.height) -- , e.event_type)
+      print(e.port, e.date:format('%Y-%m-%d_%H:%M'), e.height) -- , e.event_type)
    end
 end
 
@@ -96,10 +155,10 @@ local function calculate_secondary_events(primary_events, secondary_port_name)
       if primary_event.port == secondary_port.reference then
          local ev = { port=secondary_port.name, tz=primary_event.tz, event_type=primary_event.event_type }
          if ev.event_type == 'high' then
-            ev.date = primary_event.date + secondary_port.high_delta_mean
+            ev.timestamp = datetime.new(primary_event.timestamp.time_utc + secondary_port.high_delta_mean)
             ev.height = primary_event.height
          elseif ev.event_type == 'low' then
-            ev.date = primary_event.date + secondary_port.low_delta_mean
+            ev.timestamp = datetime.new(primary_event.timestamp.time_utc + secondary_port.low_delta_mean)
             ev.height = primary_event.height
          end
          events[#events+1] = ev
