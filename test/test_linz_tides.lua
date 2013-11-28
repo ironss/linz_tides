@@ -34,11 +34,25 @@ end
 
 
 Test_secondary_ports = {}
-secondary_events = linz.calculate_secondary_events(events, 'Astrolabe Roadstead')
+astrolabe_events = linz.calculate_secondary_events(events, 'Astrolabe Roadstead')
+motueka_events = linz.calculate_secondary_events(events, 'Motueka')
 
 function Test_secondary_ports:test_port_name()
-   assert_equals(secondary_events[1].port, 'Astrolabe Roadstead')
+   assert_equals(astrolabe_events[1].port, 'Astrolabe Roadstead')
 end
+
+function Test_secondary_ports:test_low_offset_negative()
+   assert_equals(astrolabe_events[1].date, os.time{year='2013', month='01', day='01', hour='05', min='24'})
+end
+
+function Test_secondary_ports:test_low_offset_positive()
+   assert_equals(motueka_events[1].date, os.time{year='2013', month='01', day='01', hour='06', min='03'})
+end
+
+function Test_secondary_ports:test_high_offset_positive()
+   assert_equals(motueka_events[#events].date, os.time{year='2013', month='12', day='31', hour='20', min='56'})
+end
+
 
 LuaUnit:run()
 
