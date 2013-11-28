@@ -5,7 +5,6 @@
 --    port, date_time_utc, height
 
 
--- TODO: Timezone correction for primary and secondary ports
 -- TODO: Tide height correction for secondary ports
 
 
@@ -35,7 +34,7 @@ end
 
 
 -- Extract tidal data from an open file
-local function parse_linz_tide_file(f)
+local function read_linz_tide_file(f)
    local l1 = f:read('*l')
    local _, port, latitude, longitude = l1:match('^(.-),(.-),(.-),(.-)%c*$')
    local l2 = f:read('*l')
@@ -57,9 +56,9 @@ local function parse_linz_tide_file(f)
    return events
 end
 
-local function parse_linz_tide_filename(filename)
+local function read_linz_tide_filename(filename)
    local f = io.open(filename)
-   local events = parse_linz_tide_file(f)
+   local events = read_linz_tide_file(f)
    for i, _ in ipairs(events) do
       if events[i] ~= nil and events[i+1] ~= nil then
          if events[i].height > events[i+1].height then
@@ -74,11 +73,6 @@ local function parse_linz_tide_filename(filename)
    return events
 end
 
-local function print_linz_events(events)
-   for _, e in ipairs(events) do
-      print(e.port, e.timestamp:format('%Y-%m-%d_%H:%MZ'), e.height) -- , e.event_type)
-   end
-end
 
 local function time_offset(offset)
    local sign = offset:sub(1, 1)
@@ -117,7 +111,14 @@ local function calculate_secondary_events(primary_events, secondary_port_name)
 end
 
 
-M.parse_tide_file = parse_linz_tide_filename
+local function print_linz_events(events, tz)
+   for _, e in ipairs(events) do
+      print(e.port, e.timestamp:format('%Y-%m-%d_%H:%M '..tz, tz), e.height) -- , e.event_type)
+   end
+end
+
+
+M.read_tide_file = read_linz_tide_filename
 M.calculate_secondary_events = calculate_secondary_events
 M.print_events = print_linz_events
 
