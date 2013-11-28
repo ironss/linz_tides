@@ -46,6 +46,7 @@ local function datetime_format(format, timestamp)
 end
 
 local function datetime_clone(table)
+   local timestamp={}
    for i, v in pairs(table) do
       timestamp[i] = v
    end
@@ -68,15 +69,25 @@ local function datetime_create(time_utc, ticks_utc, ticks_per_second, preferred_
    return timestamp
 end
 
+local tzoffsets = 
+{
+   ['NZST'] = 12*3600,
+   ['NZDT'] = 13*3600,
+   ['SAST'] =  2*3600,
+}
 
 local function datetime_new(value, ...)
    local timestamp
    
    if type(value) == 'table' then
-      if table._type == 'datetime' then
+      if value._type == 'datetime' then
          timestamp = datetime_clone(value)
       else
          timestamp = datetime_create(os.time(value), 0, 1000000, value.tz)
+         if value.tz ~= nil then
+            local offset = tzoffsets[value.tz] or 0
+            timestamp.time_utc = timestamp.time_utc - offset
+         end
       end
    elseif type(value) == 'number' then
       timestamp = datetime_create(value)
