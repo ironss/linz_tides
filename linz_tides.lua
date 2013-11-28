@@ -76,7 +76,7 @@ end
 
 local function print_linz_events(events)
    for _, e in ipairs(events) do
-      print(e.port, e.date:format('%Y-%m-%d_%H:%M'), e.height) -- , e.event_type)
+      print(e.port, e.timestamp:format('%Y-%m-%d_%H:%MZ'), e.height) -- , e.event_type)
    end
 end
 

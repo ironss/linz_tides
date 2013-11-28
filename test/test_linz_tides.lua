@@ -50,7 +50,7 @@ function Test_secondary_ports:test_low_offset_positive()
 end
 
 function Test_secondary_ports:test_high_offset_positive()
-   assert_equals(motueka_events[#events].timestamp.time_utc, os.time{year='2013', month='12', day='31', hour='20', min='56'} - 12*3600)
+   assert_equals(motueka_events[#motueka_events].timestamp.time_utc, os.time{year='2013', month='12', day='31', hour='20', min='56'} - 12*3600)
 end
 
 

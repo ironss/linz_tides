@@ -42,7 +42,22 @@ local M={}
 
 --local dateparse = require('dateparse')
 
-local function datetime_format(format, timestamp)
+local tzoffsets = 
+{
+   ['NZST'] = 12*3600,
+   ['NZDT'] = 13*3600,
+   ['SAST'] =  2*3600,
+}
+
+local function datetime_format(format, timestamp, tz)
+   local format = format or '%Y-%m-%dT%H:%M:%SZ'
+   local time = timestamp.time_utc
+   if tz ~= nil then
+      local offset = tzoffsets[tz] or 0
+      time = time + offset
+   end
+   local output = os.date(format, time)
+   return output
 end
 
 local function datetime_clone(table)
@@ -62,19 +77,13 @@ local function datetime_create(time_utc, ticks_utc, ticks_per_second, preferred_
    timestamp.ticks_per_second = ticks_per_second or 1000000
    timestamp.preferred_tz = preferred_tz or ''
 
-   timestamp.format = function(self, format)
-      return datetime_format(format, self)
+   timestamp.format = function(self, format, tz)
+      return datetime_format(format, self, tz)
    end
 
    return timestamp
 end
 
-local tzoffsets = 
-{
-   ['NZST'] = 12*3600,
-   ['NZDT'] = 13*3600,
-   ['SAST'] =  2*3600,
-}
 
 local function datetime_new(value, ...)
    local timestamp
