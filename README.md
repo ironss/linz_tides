@@ -15,7 +15,7 @@ Lua module to calculate New Zealand tide prediction from the LINZ tide data.
 TODO
 ----
 
-1. Find a module that does time-zone calculations.
+1. Timezone correction for primary and secondary ports.
 
 2. Add data for more secondary ports.
 

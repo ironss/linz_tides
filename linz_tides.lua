@@ -4,7 +4,9 @@
 --    port, date, time, tz, height
 --    port, date_time_utc, height
 
--- TODO: Convert date, time and tz to UTC time
+
+-- TODO: Timezone correction for primary and secondary ports
+-- TODO: Tide height correction for secondary ports
 
 
 local M={}
@@ -12,11 +14,16 @@ local M={}
  
 local ports = 
 {
-   ['Nelson'             ]={ no='6458' , name='Nelson'             , latitdue='', longitude='', reference=''                                                       , msl='2.32'             },
-   ['Astrolabe Roadstead']={ no='6455' , name='Astrolabe Roadstead', latitude='', longitude='', reference='Nelson', high_delta_mean='-0020', low_delta_mean='-0020', msl='2.5', ratio=1.21, }, 
-   ['Kaiteriteri'        ]={ no='6456' , name='Kaiteriteri'        , latitude='', longitude='', reference='Nelson', high_delta_mean='+0001', low_delta_mean='+0005', msl='2.1', ratio=0.95, },
-   ['Mapua'              ]={ no='6455b', name='Mapua'              , latitude='', longitude='', reference='Nelson', high_delta_mean='+0019', low_delta_mean='+0019', msl='2.4', ratio=0.92, },
-   ['Motueka'            ]={ no='6455a', name='Motueka'            , latitdue='', longitude='', reference='Nelson', high_delta_mean='+0005', low_delta_mean='+0019', msl='2.4', ratio=0.95, },
+   ['Nelson'             ]={ no='6458' , name='Nelson'             , latitdue='', longitude='', reference=''       ,
+                                                                            , msl='2.32'                          },
+   ['Astrolabe Roadstead']={ no='6455' , name='Astrolabe Roadstead', latitude='', longitude='', reference='Nelson' ,
+                             high_delta_mean='-0020', low_delta_mean='-0020', msl='2.5', ratio=1.21,              }, 
+   ['Kaiteriteri'        ]={ no='6456' , name='Kaiteriteri'        , latitude='', longitude='', reference='Nelson' , 
+                             high_delta_mean='+0001', low_delta_mean='+0005', msl='2.1', ratio=0.95,              },
+   ['Mapua'              ]={ no='6455b', name='Mapua'              , latitude='', longitude='', reference='Nelson' , 
+                             high_delta_mean='+0019', low_delta_mean='+0019', msl='2.4', ratio=0.92,              },
+   ['Motueka'            ]={ no='6455a', name='Motueka'            , latitdue='', longitude='', reference='Nelson' , 
+                             high_delta_mean='+0005', low_delta_mean='+0019', msl='2.4', ratio=0.95,              },
 }
 
 
