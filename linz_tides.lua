@@ -5,9 +5,6 @@
 --    port, date_time_utc, height
 
 
--- TODO: Tide height correction for secondary ports
-
-
 local datetime = require('datetime')
 
 
