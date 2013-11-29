@@ -2,14 +2,12 @@
 
 local linz = require('linz_tides')
 
-local nelson_events = {}
-linz.read_tide_file('data/nelson-2013.csv', nelson_events)
-linz.read_tide_file('data/nelson-2014.csv', nelson_events)
+local nelson_events = linz.read_tide_file('nelson-2013-12.csv')
 
 local astrolabe_events = linz.calculate_secondary_events(nelson_events, 'Astrolabe Roadstead')
 local motueka_events = linz.calculate_secondary_events(nelson_events, 'Motueka')
 
 linz.print_events(nelson_events, 'NZDT')
-linz.print_events(astrolabe_events, 'NZDT')
 linz.print_events(motueka_events, 'NZDT')
+linz.print_events(astrolabe_events, 'NZDT')
 
