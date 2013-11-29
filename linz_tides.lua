@@ -45,13 +45,15 @@ local function read_linz_tide_file(f, events)
    local events = events or {}
    for l in f:lines() do
       local day, _, month, year, t1, h1, t2, h2, t3, h3, t4, h4 = l:match('^(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-)%c*$')
-      events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1 }
-      events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=h2 }
-      events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=h3 }
-      if (t4 ~= '') then
---         print (port, year, month, day, tz, t4, h4)
-         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=h4 }
-      end   
+      if day ~= nil then
+         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1 }
+         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=h2 }
+         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=h3 }
+         if (t4 ~= '') then
+   --         print (port, year, month, day, tz, t4, h4)
+            events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=h4 }
+         end
+      end
    end
    return events
 end
