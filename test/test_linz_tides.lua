@@ -53,6 +53,13 @@ function Test_secondary_ports:test_high_offset_positive()
    assert_equals(motueka_events[#motueka_events].timestamp.time_utc, os.time{year='2013', month='12', day='31', hour='20', min='56'} - 12*3600)
 end
 
+function Test_secondary_ports:test_low_height_of_tide()
+   assert_close(motueka_events[1].height, 0.861, 0.001)
+end
+
+function Test_secondary_ports:test_high_height_of_tide()
+   assert_close(motueka_events[#motueka_events].height, 3.996, 0.001)
+end
 
 LuaUnit:run()
 
