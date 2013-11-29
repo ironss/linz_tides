@@ -109,10 +109,12 @@ local function calculate_secondary_events(all_events, secondary_port_name)
             ev.timestamp = datetime.new(primary_event.timestamp.time_utc + secondary_port.low_delta_mean)
          end
          
-         primary_event.HOT = primary_event.height - primary_port.MSL
-         ev.HOT = primary_event.HOT * secondary_port.ratio
-         ev.height = ev.HOT + secondary_port.MSL
+         primary_event.ROT = primary_event.height - primary_port.MSL
+         ev.ROT = primary_event.ROT * secondary_port.ratio
+         ev.height = ev.ROT + secondary_port.MSL
 
+--         print(primary_event.port, primary_event.timestamp:format('%H%M', 'NZDT'), primary_event.height, primary_port.MSL, primary_event.ROT)
+--         print(ev.port, ev.timestamp:format('%H%M', 'NZDT'), secondary_port.MSL, secondary_port.ratio, ev.ROT, ev.height)
          events[#events+1] = ev
       end
    end
@@ -123,7 +125,7 @@ end
 
 local function print_linz_events(events, tz)
    for _, e in ipairs(events) do
-      print(e.port, e.timestamp:format('%Y-%m-%d\t%H:%M\t'..tz, tz), string.format("%3.1f", e.height))
+      print(e.port, e.timestamp:format('%Y-%m-%d\t%H%M\t'..tz, tz), string.format("% 3.1f", e.height))
    end
 end
 
