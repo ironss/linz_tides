@@ -1,0 +1,38 @@
+#! /usr/bin/lua
+
+local linz = require('linz_tides')
+
+tidefiles={
+   'data/nelson-2013.csv',
+   'data/nelson-2014.csv',
+   'data/nelson-2015.csv',
+   'data/lyttelton-2013.csv',
+   'data/lyttelton-2014.csv',
+--   'data/lyttelton-2015.csv',
+   'data/marsden_point-2014.csv',
+   'data/marsden_point-2015.csv',
+}
+
+secondary_ports = {
+   'Astrolabe Roadstead',
+   'Kaiteriteri',
+   'Motueka',
+   'Doves Bay',
+}
+
+local primary_events={}
+for _, v in ipairs(tidefiles) do
+   linz.read_tide_file(v, primary_events)
+end
+
+local all_events = {}
+for _, v in ipairs(primary_events) do
+   all_events[#all_events+1] = v
+end
+
+for _, v in ipairs(secondary_ports) do
+   linz.calculate_secondary_events(primary_events, v, all_events)
+end
+
+linz.print_events(all_events, 'NZDT')
+

@@ -23,6 +23,16 @@ local ports =
                              high_delta_mean='+0019', low_delta_mean='+0019', MSL='2.4', ratio=0.92,              },
    ['Motueka'            ]={ no='6455a', latitude='', longitude='', reference='Nelson' , 
                              high_delta_mean='+0005', low_delta_mean='+0019', MSL='2.4', ratio=0.95,              },
+                             
+   ['Lyttelton'          ]={ no='6490' , latitude='', longitude='', reference=''        ,
+                                                                              MSL='1.38'                          },
+                                                                              
+   ['Marsden Point'      ]={ no='6394' , latitdue='', longitude='', reference=''       ,
+                                                                              MSL='1.57'                          },
+                                                                              
+   ['Doves Bay'          ]={ no='6390c', latitude='', longitude='', reference='Marsden Point' , 
+                             high_delta_mean='-0006', low_delta_mean='-0002', MSL='1.5', ratio=0.78,              },
+                                                                           
 }
 
 for i, v in pairs(ports) do
@@ -81,7 +91,7 @@ local function time_offset(offset)
    return offset_in_seconds
 end
 
-local function calculate_secondary_events(all_events, secondary_port_name)
+local function calculate_secondary_events(primary_events, secondary_port_name, secondary_events)
    local secondary_port = ports[secondary_port_name]
    local primary_port_name = secondary_port.reference
    local primary_port = ports[primary_port_name]
@@ -93,8 +103,8 @@ local function calculate_secondary_events(all_events, secondary_port_name)
       secondary_port.low_delta_mean = time_offset(secondary_port.low_delta_mean)
    end
    
-   local events = {}
-   for _, primary_event in ipairs(all_events) do
+   local events = secondary_events or {}
+   for _, primary_event in ipairs(primary_events) do
       if primary_event.port == secondary_port.reference then
          local ev = { port=secondary_port.name, tz=primary_event.tz, event_type=primary_event.event_type }
          
