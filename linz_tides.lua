@@ -9,35 +9,65 @@ local datetime = require('datetime')
 
 
 local M={}
- 
-local ports = 
+
+
+local refporttable = 
 {
-   ['Nelson'             ]={ no='6458' , latitdue='', longitude='', reference=''       ,
-                                                                              MSL='2.32'                          },
-                                                                              
-   ['Astrolabe Roadstead']={ no='6455' , latitude='', longitude='', reference='Nelson' ,
-                             high_delta_mean='-0020', low_delta_mean='-0020', MSL='2.5', ratio=1.21,              }, 
-   ['Kaiteriteri'        ]={ no='6456' , latitude='', longitude='', reference='Nelson' , 
-                             high_delta_mean='+0001', low_delta_mean='+0005', MSL='2.1', ratio=0.95,              },
-   ['Mapua'              ]={ no='6455b', latitude='', longitude='', reference='Nelson' , 
-                             high_delta_mean='+0019', low_delta_mean='+0019', MSL='2.4', ratio=0.92,              },
-   ['Motueka'            ]={ no='6455a', latitude='', longitude='', reference='Nelson' , 
-                             high_delta_mean='+0005', low_delta_mean='+0019', MSL='2.4', ratio=0.95,              },
-                             
-   ['Lyttelton'          ]={ no='6490' , latitude='', longitude='', reference=''        ,
-                                                                              MSL='1.38'                          },
-                                                                              
-   ['Marsden Point'      ]={ no='6394' , latitdue='', longitude='', reference=''       ,
-                                                                              MSL='1.57'                          },
-                                                                              
-   ['Doves Bay'          ]={ no='6390c', latitude='', longitude='', reference='Marsden Point' , 
-                             high_delta_mean='-0006', low_delta_mean='-0002', MSL='1.5', ratio=0.78,              },
-                                                                           
+   ['AUCKLAND']='Auckland',
+   ['BLUFF']='Bluff',
+   ['LYTTELTON']='Lyttelton',
+   ['MARSDEN POINT']='Marsden Point',
+   ['NELSON']='Nelson',
+   ['NAPIER']='Napier',
+   ['ONEHUNGA']='Onehunga',
+   ['PICTON']='Picton',
+   ['PORT CHALMERS']='Port Chalmers',
+   ['PORT TARANAKI']='Port Taranaki',
+   ['TAURANGA']='Tauranga',
+   ['TIMARU']='Timaru',
+   ['WELLINGTON']='Wellington',
+   ['WESTPORT']='Westport',
 }
 
-for i, v in pairs(ports) do
-   v.name = i
+local function read_linz_port_data_filename(filename)
+   local f = io.open(filename)
+   local l1 = f:read('*l')
+   local l2 = f:read('*l')
+   local l3 = f:read('*l')
+   
+   local reference = ''
+   local ports = {}
+   for l in f:lines() do
+      --print(l)
+      local no, name, latd, latm, longd, longm, meanHW, _, meanLW, _, _, _, _, MSL, ratio = l:match('^(.-),(.-),(.-),(.-),(.-),(.-)W?,(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-).*$')
+      --print(no, name, latd, latm, longd, longm, meanHW, meanLW, MSL, ratio)
+      
+      if no ~= '' then  -- Avoid blank lines and the region heading lines
+         local port
+         local latitude = tonumber(latd) + tonumber(latm) / 60
+         local longitude = tonumber(longd) + tonumber(longm) / 60
+      
+         if meanHW == 'hhmm'then
+            name=refporttable[name]
+            port = { no=no, name=name, latitude=latitude, longitude=longitude, reference='x', MSL=MSL}
+            reference = name
+         else
+            port = { no=no, name=name, latitude=latitude, longitude=longitude, reference=reference, high_delta_mean=meanHW, low_delta_mean=meanLW, MSL=MSL, ratio=ratio }
+         end
+         ports[name] = port
+      end
+   end
+   
+   return ports
 end
+
+
+local ports = read_linz_port_data_filename('secondaryports2013-14.csv')
+
+--[[for _, p in pairs(ports) do
+   print(p.no, p.name, p.reference, p.MSL, p.ratio)
+end
+--]]
 
 
 -- Extract tidal data from an open file
@@ -92,6 +122,7 @@ local function time_offset(offset)
 end
 
 local function calculate_secondary_events(primary_events, secondary_port_name, secondary_events)
+   --print(secondary_port_name)
    local secondary_port = ports[secondary_port_name]
    local primary_port_name = secondary_port.reference
    local primary_port = ports[primary_port_name]
