@@ -1,4 +1,4 @@
-#! /usr/bin/lua
+#! /usr/bin/lua5.1
 
 local linz = require('linz_tides')
 
@@ -30,6 +30,7 @@ secondary_ports = {
    'Tikao Bay',
 }
 
+--[[
 local primary_events={}
 for _, v in ipairs(tidefiles) do
    linz.read_tide_file(v, primary_events)
@@ -45,4 +46,4 @@ for _, v in ipairs(secondary_ports) do
 end
 
 linz.print_events(all_events, 'NZST')
-
+--]]

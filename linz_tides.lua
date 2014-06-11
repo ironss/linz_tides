@@ -1,4 +1,4 @@
-#! /usr/bin/lua
+#! /usr/bin/lua5.1
 
 -- Convert tidal data from LINZ CVS format into a more friendly format
 --    port, date, time, tz, height
@@ -8,10 +8,120 @@
 local datetime = require('datetime')
 
 
+local function create_ports(filename)
+   local driver = require 'luasql.sqlite3'
+   local env = assert(driver.sqlite3())
+   local con = assert(env:connect(filename))
+
+   local result = con:execute('PRAGMA foreign_keys = ON')
+
+   local result = con:execute('DROP TABLE secondary_ports')
+   local result = con:execute('DROP TABLE primary_ports')
+   local result = con:execute('DROP TABLE ports')
+   local result = con:execute('DROP TABLE tide_events')
+
+   local result = con:execute([[
+      CREATE TABLE ports(
+         name varchar(50),
+         id varchar(10),
+         latitude real,
+         longitude real,
+         mean_sea_level real,
+
+         PRIMARY KEY (name, id)
+      )
+   ]])
+   
+   local result = con:execute([[
+      CREATE TABLE primary_ports(
+         name varchar(50),
+         id varchar(10),
+         
+         PRIMARY KEY (name)
+         FOREIGN KEY (name, id) REFERENCES ports(name, id)
+      )
+   ]])
+   
+   local result = con:execute([[
+      CREATE TABLE secondary_ports(
+         name varchar(50),
+         id varchar(10),
+         reference_port varchar(50),
+         mean_delta_hw real,
+         mean_delta_lw real,
+         ratio real,
+         
+         PRIMARY KEY (name, id)
+         FOREIGN KEY (name, id) REFERENCES ports(name, id)
+         FOREIGN KEY (reference_port) REFERENCES primary_ports(name)
+      )
+   ]])
+
+   con:close()
+   env:close()
+end
+
+--[=[
+local author_list = {
+  { name="Jose das Couves", email="jose@couves.com", },
+  { name="Manoel Joaquim", email="manoel.joaquim@cafundo.com", },
+  { name="Maria das Dores", email="maria@dores.com", },
+}
+
+for i, p in pairs (author_list) do
+  res = assert (con:execute(string.format([[
+    INSERT INTO 'people'
+    VALUES ('%s', '%s')]], p.name, p.email)
+  ))
+end
+
+
+local book_list = {
+   { title="A short introduction", author="Jose das Couves", year="1950", _expected=1 },
+   { title="A quick survey", author="Jose das Couves", year="1951", _expected=1 },
+   { title="A brief summary", author="Jose das Couves", year="1960", _expected=1 },
+   { title="A complete coverage", author="Manoel Joaquim", year="1999",_expected=1 },
+   { title="A non-existant author", author="No Name", year="2022", _expected=nil },
+}
+
+for i, p in pairs (book_list) do
+  res = con:execute(string.format([[
+    INSERT INTO books
+    VALUES ('%s', '%s', '%s')]], p.author, p.title, p.year)
+  )
+--  print(res, p._expected)
+  assert(res == p._expected)
+end
+
+
+cur = assert(con:execute('SELECT name, email from people'))
+row = cur:fetch ({}, 'a')
+while row do
+  print(string.format('Name: %s, E-mail: %s', row.name, row.email))
+  row = cur:fetch (row, 'a')
+end
+
+
+   cur:close()
+   con:close()
+   env:close()
+--]=]
+
+-- Only do this if the file does not exist
+create_ports('linz-tides.db')
+
+
+local driver = require 'luasql.sqlite3'
+local env = assert(driver.sqlite3())
+local con = assert(env:connect('linz-tides.db'))
+
 local M={}
 
+-- -----------------
+-- New Zealand ports
+-- -----------------
 
-local refporttable = 
+local port_name_translation = 
 {
    ['AUCKLAND']='Auckland',
    ['BLUFF']='Bluff',
@@ -29,6 +139,50 @@ local refporttable =
    ['WESTPORT']='Westport',
 }
 
+
+local ports = {}
+local ports_by_id = {}
+local primary_ports = {}
+local secondary_ports = {}
+
+local function Port_new(p)
+   local name = p.name
+   ports[name] = p
+   
+   if ports_by_id[p.no] == nil then
+      ports_by_id[p.no] = p
+      local result = assert(con:execute(string.format([[
+         INSERT INTO 'ports'
+         VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f')]], p.name, p.no, p.latitude, p.longitude, p.MSL)
+      ))
+   end
+   return p
+end
+
+local function Primary_Port_new(p)
+   local name = p.name
+   Port_new(p)
+   primary_ports[name] = p
+   
+   local result = assert(con:execute(string.format([[
+      INSERT INTO 'primary_ports'
+      VALUES ("%s", '%s')]], p.name, p.no)
+   ))
+   return p
+end
+
+local function Secondary_Port_new(p)
+   local name = p.name
+   Port_new(p)
+   secondary_ports[name] = p
+
+   local result = assert(con:execute(string.format([[
+      INSERT INTO 'secondary_ports'
+      VALUES ("%s", '%s', '%s', '%6.1f', '%6.1f', '%6.2f')]], p.name, p.no, p.reference, p.high_delta_mean, p.low_delta_mean, p.ratio)
+   ))
+   return p
+end
+
 local function read_linz_port_data_filename(filename)
    local f = io.open(filename)
    local l1 = f:read('*l')
@@ -39,35 +193,42 @@ local function read_linz_port_data_filename(filename)
    local ports = {}
    for l in f:lines() do
       --print(l)
-      local no, name, latd, latm, longd, longm, meanHW, _, meanLW, _, _, _, _, MSL, ratio = l:match('^(.-),(.-),(.-),(.-),(.-),(.-)W?,(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-).*$')
-      --print(no, name, latd, latm, longd, longm, meanHW, meanLW, MSL, ratio)
+      local no, name, latd, latm, longd, longm, meanHW, _, meanLW, _, _, _, _, _, MSL, ratio = l:match('^(.-),(.-),(.-),(.-),(.-),(.-)W?,(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-).*$')
+      print(no, name, latd, latm, longd, longm, meanHW, meanLW, MSL, ratio)
       
       if no ~= '' then  -- Avoid blank lines and the region heading lines
          local port
          local latitude = tonumber(latd) + tonumber(latm) / 60
          local longitude = tonumber(longd) + tonumber(longm) / 60
-      
-         if meanHW == 'hhmm'then
-            name=refporttable[name]
-            port = { no=no, name=name, latitude=latitude, longitude=longitude, reference='x', MSL=MSL}
+
+         if meanHW == 'hhmm'then -- Avoid primary ports, which have no mean_hw or mean_lw offset
+            name=port_name_translation[name]
+            Primary_Port_new{ no=no, name=name, latitude=latitude, longitude=longitude, reference=nil, MSL=tonumber(MSL)}
             reference = name
          else
-            port = { no=no, name=name, latitude=latitude, longitude=longitude, reference=reference, high_delta_mean=meanHW, low_delta_mean=meanLW, MSL=MSL, ratio=ratio }
+            Secondary_Port_new{ no=no, name=name, latitude=latitude, longitude=longitude, reference=reference, high_delta_mean=tonumber(meanHW) or 0, low_delta_mean=tonumber(meanLW) or 0, MSL=tonumber(MSL) or 0, ratio=tonumber(ratio) or 1 }
          end
-         ports[name] = port
       end
    end
-   
-   return ports
 end
 
-
-local ports = read_linz_port_data_filename('secondaryports2013-14.csv')
+read_linz_port_data_filename('secondaryports2013-14.csv')
 
 --[[for _, p in pairs(ports) do
    print(p.no, p.name, p.reference, p.MSL, p.ratio)
 end
 --]]
+
+
+-- -----------
+-- Tide events
+-- -----------
+
+local events = {}
+local function Event_new(e)
+   events[#events+1] = e
+   return e
+end
 
 
 -- Extract tidal data from an open file
@@ -83,12 +244,12 @@ local function read_linz_tide_file(f, events)
    for l in f:lines() do
       local day, _, month, year, t1, h1, t2, h2, t3, h3, t4, h4 = l:match('^(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-)%c*$')
       if day ~= nil then
-         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1 }
-         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=h2 }
-         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=h3 }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=tonumber(h1) }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=tonumber(h2) }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=tonumber(h3) }
          if (t4 ~= '') then
    --         print (port, year, month, day, tz, t4, h4)
-            events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=h4 }
+            events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=tonumber(h4) }
          end
       end
    end
