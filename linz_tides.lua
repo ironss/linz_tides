@@ -133,8 +133,8 @@ local M={}
 
 M.erase_tables = erase_tides
 M.create_tables = create_tides
+M.populate_tables = read_linz_tide_filename
 
-M.read_tide_file = read_linz_tide_filename
 M.calculate_secondary_events = calculate_secondary_events
 M.print_events = print_linz_events
 

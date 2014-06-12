@@ -3,12 +3,13 @@
 local ports = require('linz_ports')
 local tides = require('linz_tides')
 
-tides.erase_tables()
-ports.erase_tables()
-ports.create_tables()
-ports.populate_tables('secondaryports2013-14.csv')
 --tides.erase_tables()
---tides.create_tables()
+--ports.erase_tables()
+--ports.create_tables()
+--ports.populate_tables('secondaryports2013-14.csv')
+
+tides.erase_tables()
+tides.create_tables()
 
 tidefiles={
    'data/nelson-2013.csv',
@@ -39,12 +40,12 @@ secondary_ports = {
 }
 
 
---[[
 local primary_events={}
-for _, v in ipairs(tidefiles) do
-   tides.read_tide_file(v, primary_events)
+for _, filename in ipairs(tidefiles) do
+   tides.populate_tables(filename, primary_events)
 end
 
+--[[
 local all_events = {}
 for _, v in ipairs(primary_events) do
    all_events[#all_events+1] = v
