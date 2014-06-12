@@ -29,7 +29,7 @@ local function create_tables()
          longitude REAL,
          mean_sea_level REAL,
 
-         PRIMARY KEY (name, id)
+         PRIMARY KEY (name)
       )
    ]]))
    
@@ -39,7 +39,7 @@ local function create_tables()
          id VARCHAR(10),
          
          PRIMARY KEY (name)
-         FOREIGN KEY (name, id) REFERENCES ports(name, id)
+         FOREIGN KEY (name) REFERENCES ports(name)
       )
    ]]))
    
@@ -52,8 +52,8 @@ local function create_tables()
          mean_delta_lw REAL,
          ratio REAL,
          
-         PRIMARY KEY (name, id)
-         FOREIGN KEY (name, id) REFERENCES ports(name, id)
+         PRIMARY KEY (name)
+         FOREIGN KEY (name) REFERENCES ports(name)
          FOREIGN KEY (reference_port) REFERENCES primary_ports(name)
       )
    ]]))
