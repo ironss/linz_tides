@@ -12,15 +12,15 @@ local tides = require('linz_tides')
 --tides.create_tables()
 
 tidefiles={
---   'data/nelson-2013.csv',
---   'data/nelson-2014.csv',
---   'data/nelson-2015.csv',
---   'data/lyttelton-2013.csv',
---   'data/lyttelton-2014.csv',
---   'data/lyttelton-2015.csv',
---   'data/marsden_point-2013.csv',
---   'data/marsden_point-2014.csv',
---   'data/marsden_point-2015.csv',
+--   'tide_data/nelson-2013.csv',
+--   'tide_data/nelson-2014.csv',
+--   'tide_data/nelson-2015.csv',
+--   'tide_data/lyttelton-2013.csv',
+--   'tide_data/lyttelton-2014.csv',
+--   'tide_data/lyttelton-2015.csv',
+--   'tide_data/marsden_point-2013.csv',
+--   'tide_data/marsden_point-2014.csv',
+--   'tide_data/marsden_point-2015.csv',
 }
 
 secondary_ports = {
