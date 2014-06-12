@@ -20,8 +20,8 @@ local function create_tides()
       CREATE TABLE primary_tide_events(
          port_name VARCHAR(50),
          event_time DATETIME,
-         height_of_tide REAL,
          event_type VARCHAR(10),
+         height_of_tide REAL,
 
          PRIMARY KEY (port_name, event_time)
          FOREIGN KEY (port_name) REFERENCES primary_ports(name)
@@ -42,10 +42,10 @@ local events = {}
 local function Event_new(e)
    events[#events+1] = e
 
-   print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'))
+   print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_tide_events'
-      VALUES ("%s", '%s', '%3.1f', NULL)]], e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.height)
+      VALUES ("%s", '%s', '%s', '%3.1f')]], e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    ))
 
    return e
@@ -53,8 +53,8 @@ end
 
 -- Extract tidal data from an open file
 local function read_linz_tide_file(f, events)
---   erase_tides()
---   create_tides()
+   erase_tides()
+   create_tides()
    
    local l1 = f:read('*l')
    local _, port, latitude, longitude = l1:match('^(.-),(.-),(.-),(.-)%c*$')
@@ -66,13 +66,18 @@ local function read_linz_tide_file(f, events)
    local events = events or {}
    for l in f:lines() do
       local day, _, month, year, t1, h1, t2, h2, t3, h3, t4, h4 = l:match('^(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-)%c*$')
+      h1 = tonumber(h1)
+      h2 = tonumber(h2)
+      h3 = tonumber(h3)
+      h4 = tonumber(h4)
+
       if day ~= nil then
-         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=tonumber(h1) }
-         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=tonumber(h2) }
-         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=tonumber(h3) }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1, event_type=h1 > h2 and "high" or "low" }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=h2, event_type=h2 > h3 and "high" or "low" }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=h3, event_type=h3 > h2 and "high" or "low" }
          if (t4 ~= '') then
    --         print (port, year, month, day, tz, t4, h4)
-            events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=tonumber(h4) }
+            events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=h4, event_type=h4 > h3 and "high" or "low" }
          end
       end
    end
@@ -84,17 +89,6 @@ local function read_linz_tide_filename(filename, events)
 
    local f = io.open(filename)
    local events = read_linz_tide_file(f, events)
-   for i, _ in ipairs(events) do
-      if events[i] ~= nil and events[i+1] ~= nil then
-         if events[i].height > events[i+1].height then
-            events[i].event_type = 'high'
-            events[i+1].event_type = 'low'
-         else
-            events[i].event_type = 'low'
-            events[i+1].event_type = 'high'
-         end
-      end
-   end
    return events
 end
 
