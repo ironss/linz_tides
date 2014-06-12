@@ -84,6 +84,7 @@ local port_name_translation =
 
 
 local function Port_new(p)
+   print(p.name, p.no, p.latitude, p.longitude, p.MSL)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'ports'
       VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f')]], p.name, p.no, p.latitude, p.longitude, p.MSL)
