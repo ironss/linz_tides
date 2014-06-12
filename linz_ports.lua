@@ -88,9 +88,6 @@ local primary_ports = {}
 local secondary_ports = {}
 
 local function Port_new(p)
-   local name = p.name
-   ports[name] = p
-   
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'ports'
       VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f')]], p.name, p.no, p.latitude, p.longitude, p.MSL)
@@ -99,10 +96,7 @@ local function Port_new(p)
 end
 
 local function Primary_Port_new(p)
-   local name = p.name
    Port_new(p)
-   primary_ports[name] = p
-   
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_ports'
       VALUES ("%s", '%s')]], p.name, p.no)
@@ -111,16 +105,14 @@ local function Primary_Port_new(p)
 end
 
 local function Secondary_Port_new(p)
-   local name = p.name
    Port_new(p)
-   secondary_ports[name] = p
-
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'secondary_ports'
       VALUES ("%s", '%s', '%s', '%6.1f', '%6.1f', '%6.2f')]], p.name, p.no, p.reference, p.high_delta_mean, p.low_delta_mean, p.ratio)
    ))
    return p
 end
+
 
 local function create_linz_ports_database(filename)
    erase_ports()
@@ -153,13 +145,6 @@ local function create_linz_ports_database(filename)
    end
 end
 
---[[cur = assert(con:execute('SELECT name, email from people'))
-row = cur:fetch ({}, 'a')
-while row do
-  print(string.format('Name: %s, E-mail: %s', row.name, row.email))
-  row = cur:fetch (row, 'a')
-end
---]]
 
 local function ports_find_any(name)
    local cur = assert(cx:execute([[
@@ -193,52 +178,4 @@ M.find_primary = ports_find_primary
 M.create_db = create_linz_ports_database
 
 return M
-
-
---[=[
-local author_list = {
-  { name="Jose das Couves", email="jose@couves.com", },
-  { name="Manoel Joaquim", email="manoel.joaquim@cafundo.com", },
-  { name="Maria das Dores", email="maria@dores.com", },
-}
-
-for i, p in pairs (author_list) do
-  res = assert (con:execute(string.format([[
-    INSERT INTO 'people'
-    VALUES ('%s', '%s')]], p.name, p.email)
-  ))
-end
-
-
-local book_list = {
-   { title="A short introduction", author="Jose das Couves", year="1950", _expected=1 },
-   { title="A quick survey", author="Jose das Couves", year="1951", _expected=1 },
-   { title="A brief summary", author="Jose das Couves", year="1960", _expected=1 },
-   { title="A complete coverage", author="Manoel Joaquim", year="1999",_expected=1 },
-   { title="A non-existant author", author="No Name", year="2022", _expected=nil },
-}
-
-for i, p in pairs (book_list) do
-  res = con:execute(string.format([[
-    INSERT INTO books
-    VALUES ('%s', '%s', '%s')]], p.author, p.title, p.year)
-  )
---  print(res, p._expected)
-  assert(res == p._expected)
-end
-
-
-cur = assert(con:execute('SELECT name, email from people'))
-row = cur:fetch ({}, 'a')
-while row do
-  print(string.format('Name: %s, E-mail: %s', row.name, row.email))
-  row = cur:fetch (row, 'a')
-end
-
-
-   cur:close()
-   con:close()
-   env:close()
---]=]
-
 
