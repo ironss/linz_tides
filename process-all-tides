@@ -85,8 +85,12 @@ CREATE TABLE region_ports (
    FOREIGN KEY (port_name) REFERENCES ports (name)
 );
 
+insert into regions values('Lyttelton');
 insert into regions values('Abel Tasman');
 insert into regions values('Bay of Islands');
+
+insert into region_ports values('Lyttelton', 'Lyttelton');
+insert into region_ports values('Lyttelton', 'Sumner');
 
 insert into region_ports values('Abel Tasman', 'Nelson');
 insert into region_ports values('Abel Tasman', 'Motueka');
