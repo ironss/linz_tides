@@ -1,17 +1,25 @@
 #! /usr/bin/lua5.1
 
-local linz = require('linz_tides')
+local ports = require('linz_ports')
+local tides = require('linz_tides')
+
+tides.erase_tables()
+ports.erase_tables()
+ports.create_tables()
+ports.populate_tables('secondaryports2013-14.csv')
+--tides.erase_tables()
+--tides.create_tables()
 
 tidefiles={
    'data/nelson-2013.csv',
---   'data/nelson-2014.csv',
---   'data/nelson-2015.csv',
+   'data/nelson-2014.csv',
+   'data/nelson-2015.csv',
    'data/lyttelton-2013.csv',
---   'data/lyttelton-2014.csv',
---   'data/lyttelton-2015.csv',
+   'data/lyttelton-2014.csv',
+   'data/lyttelton-2015.csv',
    'data/marsden_point-2013.csv',
---   'data/marsden_point-2014.csv',
---   'data/marsden_point-2015.csv',
+   'data/marsden_point-2014.csv',
+   'data/marsden_point-2015.csv',
 }
 
 secondary_ports = {
@@ -30,9 +38,11 @@ secondary_ports = {
    'Tikao Bay',
 }
 
+
+--[[
 local primary_events={}
 for _, v in ipairs(tidefiles) do
-   linz.read_tide_file(v, primary_events)
+   tides.read_tide_file(v, primary_events)
 end
 
 local all_events = {}
@@ -41,8 +51,8 @@ for _, v in ipairs(primary_events) do
 end
 
 for _, v in ipairs(secondary_ports) do
-   linz.calculate_secondary_events(primary_events, v, all_events)
+   tides.calculate_secondary_events(primary_events, v, all_events)
 end
 
-linz.print_events(all_events, 'NZST')
-
+tides.print_events(all_events, 'NZST')
+--]]

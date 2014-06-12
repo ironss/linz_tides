@@ -53,9 +53,6 @@ end
 
 -- Extract tidal data from an open file
 local function read_linz_tide_file(f, events)
-   erase_tides()
-   create_tides()
-   
    local l1 = f:read('*l')
    local _, port, latitude, longitude = l1:match('^(.-),(.-),(.-),(.-)%c*$')
    local l2 = f:read('*l')
@@ -85,34 +82,19 @@ local function read_linz_tide_file(f, events)
 end
 
 local function read_linz_tide_filename(filename, events)
-
-
+--   erase_tides()
+--   create_tides()
    local f = io.open(filename)
    local events = read_linz_tide_file(f, events)
    return events
 end
 
 
-local function time_offset(offset)
-   local sign = offset:sub(1, 1)
-   local hour = offset:sub(2, 3)
-   local minute = offset:sub(4, 5)
-   local offset_in_seconds = (tonumber(sign .. hour) * 60 + tonumber(sign .. minute)) * 60
-   return offset_in_seconds
-end
-
 local function calculate_secondary_events(primary_events, secondary_port_name, secondary_events)
    local secondary_port = ports.find_secondary(secondary_port_name)
    local primary_port_name = secondary_port.reference_port
    local primary_port = ports.find(primary_port_name)
 
-   if type(secondary_port.high_delta_mean) == 'string' then
-      secondary_port.high_delta_mean = time_offset(secondary_port.high_delta_mean)
-   end
-   if type(secondary_port.low_delta_mean) == 'string' then
-      secondary_port.low_delta_mean = time_offset(secondary_port.low_delta_mean)
-   end
-   
    local events = secondary_events or {}
    for _, primary_event in ipairs(primary_events) do
       if primary_event.port == secondary_port.reference then
@@ -148,6 +130,9 @@ end
 
 
 local M={}
+
+M.erase_tables = erase_tides
+M.create_tables = create_tides
 
 M.read_tide_file = read_linz_tide_filename
 M.calculate_secondary_events = calculate_secondary_events

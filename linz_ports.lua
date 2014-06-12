@@ -5,7 +5,6 @@
 
 -- local ports = require 'linz_ports'
 
-local linz_ports_data_filename = 'secondaryports2013-14.csv'
 local ports_filename = 'linz_tides.db'
 
 local driver = require 'luasql.sqlite3'
@@ -15,18 +14,20 @@ local result = assert(cx:execute('PRAGMA foreign_keys = ON'))
 
 -- TODO: Automatically create ports if database is empty.
 
-local function erase_ports()
+local function erase_tables()
    local result = cx:execute('DROP TABLE secondary_ports')
    local result = cx:execute('DROP TABLE primary_ports')
    local result = cx:execute('DROP TABLE ports')
+end
 
+local function create_tables()
    local result = assert(cx:execute([[
       CREATE TABLE ports(
-         name varchar(50),
-         id varchar(10),
-         latitude real,
-         longitude real,
-         mean_sea_level real,
+         name VARCHAR(50),
+         id VARCHAR(10),
+         latitude REAL,
+         longitude REAL,
+         mean_sea_level REAL,
 
          PRIMARY KEY (name, id)
       )
@@ -34,8 +35,8 @@ local function erase_ports()
    
    local result = assert(cx:execute([[
       CREATE TABLE primary_ports(
-         name varchar(50),
-         id varchar(10),
+         name VARCHAR(50),
+         id VARCHAR(10),
          
          PRIMARY KEY (name)
          FOREIGN KEY (name, id) REFERENCES ports(name, id)
@@ -44,12 +45,12 @@ local function erase_ports()
    
    local result = assert(cx:execute([[
       CREATE TABLE secondary_ports(
-         name varchar(50),
-         id varchar(10),
-         reference_port varchar(50),
-         mean_delta_hw real,
-         mean_delta_lw real,
-         ratio real,
+         name VARCHAR(50),
+         id VARCHAR(10),
+         reference_port VARCHAR(50),
+         mean_delta_hw REAL,
+         mean_delta_lw REAL,
+         ratio REAL,
          
          PRIMARY KEY (name, id)
          FOREIGN KEY (name, id) REFERENCES ports(name, id)
@@ -82,11 +83,6 @@ local port_name_translation =
 }
 
 
-local ports = {}
-local ports_by_id = {}
-local primary_ports = {}
-local secondary_ports = {}
-
 local function Port_new(p)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'ports'
@@ -114,9 +110,16 @@ local function Secondary_Port_new(p)
 end
 
 
-local function create_linz_ports_database(filename)
-   erase_ports()
+local function time_offset(offset)
+   local sign = tonumber(offset:sub(1, 1) .. '1')
+   local hour = tonumber(offset:sub(2, 3)) or 0
+   local minute = tonumber(offset:sub(4, 5)) or 0
 
+   local offset_in_seconds = sign * (hour * 60 + minute) * 60
+   return offset_in_seconds
+end
+
+local function create_linz_ports_database(filename)
    local f = io.open(filename)
    local l1 = f:read('*l')
    local l2 = f:read('*l')
@@ -127,7 +130,7 @@ local function create_linz_ports_database(filename)
    for l in f:lines() do
       --print(l)
       local no, name, latd, latm, longd, longm, meanHW, _, meanLW, _, _, _, _, _, MSL, ratio = l:match('^(.-),(.-),(.-),(.-),(.-),(.-)W?,(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-).*$')
-      print(no, name, latd, latm, longd, longm, meanHW, meanLW, MSL, ratio)
+--      print(no, name, latd, latm, longd, longm, meanHW, meanLW, MSL, ratio)
       
       if no ~= '' then  -- Avoid blank lines and the region heading lines
          local port
@@ -139,7 +142,10 @@ local function create_linz_ports_database(filename)
             Primary_Port_new{ no=no, name=name, latitude=latitude, longitude=longitude, reference=nil, MSL=tonumber(MSL)}
             reference = name
          else
-            Secondary_Port_new{ no=no, name=name, latitude=latitude, longitude=longitude, reference=reference, high_delta_mean=tonumber(meanHW) or 0, low_delta_mean=tonumber(meanLW) or 0, MSL=tonumber(MSL) or 0, ratio=tonumber(ratio) or 1 }
+            local high_delta_mean = time_offset(meanHW)
+            local low_delta_mean = time_offset(meanLW)
+
+            Secondary_Port_new{ no=no, name=name, latitude=latitude, longitude=longitude, reference=reference, high_delta_mean=high_delta_mean, low_delta_mean=low_delta_mean, MSL=tonumber(MSL) or 0, ratio=tonumber(ratio) or 1 }
          end
       end
    end
@@ -172,10 +178,13 @@ end
 
 local M={}
 
+M.erase_tables = erase_tables
+M.create_tables = create_tables
+M.populate_tables = create_linz_ports_database
+
 M.find = ports_find_any
 M.find_secondary = ports_find_secondary
 M.find_primary = ports_find_primary
-M.create_db = create_linz_ports_database
 
 return M
 
