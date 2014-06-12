@@ -6,7 +6,7 @@
 -- local ports = require 'linz_ports'
 
 local linz_ports_data_filename = 'secondaryports2013-14.csv'
-local ports_filename = 'linz_ports.db'
+local ports_filename = 'linz_tides.db'
 
 local driver = require 'luasql.sqlite3'
 local env = assert(driver.sqlite3())

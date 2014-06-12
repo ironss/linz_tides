@@ -4,6 +4,32 @@
 --    port, date, time, tz, height
 --    port, date_time_utc, height
 
+local ports_filename = 'linz_tides.db'
+
+local driver = require 'luasql.sqlite3'
+local env = assert(driver.sqlite3())
+local cx = assert(env:connect(ports_filename))
+local result = assert(cx:execute('PRAGMA foreign_keys = ON'))
+
+local function erase_tides()
+   local result = cx:execute('DROP TABLE primary_tide_events')
+end
+
+local function create_tides()
+   local result = assert(cx:execute([[
+      CREATE TABLE primary_tide_events(
+         port_name VARCHAR(50),
+         event_time DATETIME,
+         height_of_tide REAL,
+         event_type VARCHAR(10),
+
+         PRIMARY KEY (port_name, event_time)
+         FOREIGN KEY (port_name) REFERENCES primary_ports(name)
+      )
+   ]]))
+end   
+
+
 local ports = require 'linz_ports'
 
 -- -----------
@@ -15,11 +41,21 @@ local datetime = require('datetime')
 local events = {}
 local function Event_new(e)
    events[#events+1] = e
+
+   print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'))
+   local result = assert(cx:execute(string.format([[
+      INSERT INTO 'primary_tide_events'
+      VALUES ("%s", '%s', '%3.1f', NULL)]], e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.height)
+   ))
+
    return e
 end
 
 -- Extract tidal data from an open file
 local function read_linz_tide_file(f, events)
+--   erase_tides()
+--   create_tides()
+   
    local l1 = f:read('*l')
    local _, port, latitude, longitude = l1:match('^(.-),(.-),(.-),(.-)%c*$')
    local l2 = f:read('*l')
@@ -44,6 +80,8 @@ local function read_linz_tide_file(f, events)
 end
 
 local function read_linz_tide_filename(filename, events)
+
+
    local f = io.open(filename)
    local events = read_linz_tide_file(f, events)
    for i, _ in ipairs(events) do
@@ -122,52 +160,4 @@ M.calculate_secondary_events = calculate_secondary_events
 M.print_events = print_linz_events
 
 return M
-
-
---[=[
-local author_list = {
-  { name="Jose das Couves", email="jose@couves.com", },
-  { name="Manoel Joaquim", email="manoel.joaquim@cafundo.com", },
-  { name="Maria das Dores", email="maria@dores.com", },
-}
-
-for i, p in pairs (author_list) do
-  res = assert (con:execute(string.format([[
-    INSERT INTO 'people'
-    VALUES ('%s', '%s')]], p.name, p.email)
-  ))
-end
-
-
-local book_list = {
-   { title="A short introduction", author="Jose das Couves", year="1950", _expected=1 },
-   { title="A quick survey", author="Jose das Couves", year="1951", _expected=1 },
-   { title="A brief summary", author="Jose das Couves", year="1960", _expected=1 },
-   { title="A complete coverage", author="Manoel Joaquim", year="1999",_expected=1 },
-   { title="A non-existant author", author="No Name", year="2022", _expected=nil },
-}
-
-for i, p in pairs (book_list) do
-  res = con:execute(string.format([[
-    INSERT INTO books
-    VALUES ('%s', '%s', '%s')]], p.author, p.title, p.year)
-  )
---  print(res, p._expected)
-  assert(res == p._expected)
-end
-
-
-cur = assert(con:execute('SELECT name, email from people'))
-row = cur:fetch ({}, 'a')
-while row do
-  print(string.format('Name: %s, E-mail: %s', row.name, row.email))
-  row = cur:fetch (row, 'a')
-end
-
-
-   cur:close()
-   con:close()
-   env:close()
---]=]
-
 
