@@ -57,3 +57,49 @@ end
 
 tides.print_events(all_events, 'NZST')
 --]]
+
+
+--[[
+CREATE TABLE regions(
+   name VARCHAR(50),
+   
+   PRIMARY KEY (name)
+);
+
+CREATE TABLE trips(
+   name VARCHAR(50),
+   region_name VARCHAR(50),
+   start_date DATETIME,
+   end_date DATETIME,
+   
+   PRIMARY KEY(name)
+   FOREIGN KEY (region_name) REFERENCES regions (name)
+);
+
+CREATE TABLE region_ports (
+   region_name VARCHAR(50),
+   port_name VARCHAR(50),
+   
+   PRIMARY KEY (region_name, port_name)
+   FOREIGN KEY (region_name) REFERENCES regions (name)
+   FOREIGN KEY (port_name) REFERENCES ports (name)
+);
+
+insert into regions values('Abel Tasman');
+insert into regions values('Bay of Islands');
+
+insert into region_ports values('Abel Tasman', 'Nelson');
+insert into region_ports values('Abel Tasman', 'Motueka');
+insert into region_ports values('Abel Tasman', 'Kaiteriteri');
+insert into region_ports values('Abel Tasman', 'Astrolabe Roadstead');
+
+insert into region_ports values('Bay of Islands', 'Doves Bay');
+insert into region_ports values('Bay of Islands', 'Kerikeri');
+insert into region_ports values('Bay of Islands', 'Opua');
+insert into region_ports values('Bay of Islands', 'Russell');
+insert into region_ports values('Bay of Islands', 'Waitangi');
+
+insert into trips values('Abel Tasman 2011-2012', 'Abel Tasman', datetime('2011-12-22'), datetime('2012-01-08'));
+insert into trips values('Abel Tasman 2012-2013', 'Abel Tasman', datetime('2012-12-20'), datetime('2013-01-10'));
+insert into trips values('Abel Tasman 2013-2014', 'Abel Tasman', datetime('2013-12-14'), datetime('2013-01-05'));
+insert into trips values('Bay of Islands 2014-2015', 'Bay of Islands', datetime('2014-12-15'), datetime('2015-01-15'));
