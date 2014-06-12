@@ -1,0 +1,48 @@
+ports
+   name {I}
+   id {I}
+   latitude
+   longitude
+   mean_sea_level
+
+primary_ports
+   name {I, I1, R1}
+   id {I, R1}
+   
+secondary_ports
+   name {I, R1}
+   id {I, R1}
+   reference_port {R2}
+   mean_delta_hw
+   mean_delta_lw
+   ratio
+
+primary_tide_events
+   port_name {I, R3}
+   event_time {I}
+   event_type
+   height_of_tide
+
+secondary_tide_events
+   port_name {I}
+   port_id {I}
+   event_time {I}
+   primary_port_name {R}
+   primary_event_time {R}
+   height_of_tide
+
+
+trips
+   name {I}
+   region {R}
+   start_date
+   end_date
+
+regions
+   name {I}
+
+region_ports
+   region_name {I, R}
+   port_name {I, R}
+
+

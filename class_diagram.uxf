@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>510</x>
+      <y>260</y>
+      <w>570</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>R5
+r1=includes
+m1=1..*
+r2=may_be_included_in
+m2=0..*
+
+lt=-
+</panel_attributes>
+    <additional_attributes>30;50;550;50</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>20</x>
+      <y>460</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Primary Port
+--
+* Name {I}
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>190</x>
+      <y>720</y>
+      <w>490</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>R4
+r1=is_derived_from
+m1=1
+r2=is_used_to_derive
+m2=0..*
+
+lt=-
+</panel_attributes>
+    <additional_attributes>30;50;470;50</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>20</x>
+      <y>720</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Primary Tide Event
+--
+* Port_name {I, R2}
+* Event_time {I}
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>640</x>
+      <y>550</y>
+      <w>230</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>R3
+r1=is_a_predicted_tide_event_for
+m1=1
+r2=has_predicted
+m2=0..*
+
+lt=-
+</panel_attributes>
+    <additional_attributes>120;30;120;170</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>670</x>
+      <y>110</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Port in Region
+--
+* Region_name {I, R5}
+* Port_name {I, R5}
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>90</x>
+      <y>350</y>
+      <w>370</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;&gt;</panel_attributes>
+    <additional_attributes>30;110;30;70;350;70;350;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>410</x>
+      <y>350</y>
+      <w>370</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;&gt;</panel_attributes>
+    <additional_attributes>350;110;350;70;30;70;30;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>190</x>
+      <y>460</y>
+      <w>490</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>R1
+r1=has_as_reference_port
+m1=1
+r2=is_reference_port_for
+m2=0..*
+
+lt=-
+</panel_attributes>
+    <additional_attributes>30;50;470;50</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>660</x>
+      <y>720</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Secondary Tide Event
+--
+* Port_name {I, R3}
+* Event_time {I}
+- primary_event_time {R4}
+- primary_port {R4}
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>410</x>
+      <y>800</y>
+      <w>370</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;&gt;</panel_attributes>
+    <additional_attributes>350;30;350;70;30;70;30;110</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>340</x>
+      <y>260</y>
+      <w>200</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>Port
+--
+* Name {I}
+- id
+- latitude
+- longitude
+- mean_sea_level
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>100</x>
+      <y>800</y>
+      <w>360</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;&gt;</panel_attributes>
+    <additional_attributes>30;30;30;70;340;70;340;110</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>0</x>
+      <y>540</y>
+      <w>230</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>R2
+r1=is_a_predicted_tide_event_for
+m1=1
+r2=has_predicted
+m2=0..*
+
+lt=-
+</panel_attributes>
+    <additional_attributes>120;30;120;180</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>1060</x>
+      <y>260</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Region
+--
+* Name {I}
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>1090</x>
+      <y>80</y>
+      <w>138</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>R6
+r1=is_visited_during
+m1=0..*
+r2=takes_place_in
+m2=1
+
+lt=-
+</panel_attributes>
+    <additional_attributes>70;30;70;180</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>740</x>
+      <y>190</y>
+      <w>50</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>30;30;30;120</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>660</x>
+      <y>460</y>
+      <w>200</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>Secondary Port
+--
+* Name {I}
+- reference_port {R1}
+- mean_delta_hw
+- mean_delta_lw
+- range_ratio
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>1060</x>
+      <y>0</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Trip
+--
+* Name {I}
+- start_datetime
+- end_datetime
+- region {R6}
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>340</x>
+      <y>910</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Tide Event
+--
+* Port_name {I}
+* Event_time {I}
+- type_of_tide
+- height_of_tide
+
+bt=*</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
