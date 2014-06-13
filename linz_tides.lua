@@ -9,10 +9,12 @@ local ports_filename = 'linz_tides.db'
 local driver = require 'luasql.sqlite3'
 local env = assert(driver.sqlite3())
 local cx = assert(env:connect(ports_filename))
+local result = assert(cx:setautocommit(false))
 local result = assert(cx:execute('PRAGMA foreign_keys = ON'))
 
 local function erase_tides()
    local result = cx:execute('DROP TABLE primary_tide_events')
+   local result = cx:commit()
 end
 
 local function create_tides()
@@ -27,6 +29,7 @@ local function create_tides()
          FOREIGN KEY (port_name) REFERENCES primary_ports(name)
       )
    ]]))
+   local result = assert(cx:commit())
 end   
 
 
@@ -42,7 +45,7 @@ local events = {}
 local function Event_new(e)
    events[#events+1] = e
 
---   print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
+   print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_tide_events'
       VALUES ("%s", '%s', '%s', '%3.1f')]], e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
@@ -52,17 +55,9 @@ local function Event_new(e)
 end
 
 local function Events_new(event_list)
-   local statement = 'BEGIN TRANSACTION;\n'
    for _, e in ipairs(event_list) do
       Event_new(e)
---      events[#events+1] = e
---      print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
-      statement = statement .. string.format(
-      'INSERT INTO "primary_tide_events" VALUES ("%s", "%s", "%s", "%3.1f");\n', e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    end
-   statement = statement .. 'COMMIT TRANSACTION;'
---   print(statement)
---   local result = assert(cx:execute(statement))
 end
 
 -- Extract tidal data from an open file
@@ -75,7 +70,7 @@ local function read_linz_tide_file(f, events)
  
 --   print(port, tz, latitude, '"'..longitude..'"', tz)
    for l in f:lines() do
-      print(l)
+--      print(l)
       local day, _, month, year, t1, h1, t2, h2, t3, h3, t4, h4 = l:match('^(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-)%c*$')
       h1 = tonumber(h1)
       h2 = tonumber(h2)
@@ -96,6 +91,8 @@ local function read_linz_tide_file(f, events)
          Events_new(events)
       end
    end
+
+   local result = assert(cx:commit())
    return events
 end
 
