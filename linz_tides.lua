@@ -4,6 +4,7 @@
 --    port, date, time, tz, height
 --    port, date_time_utc, height
 
+
 local ports_filename = 'linz_tides.db'
 
 local driver = require 'luasql.sqlite3'
@@ -29,6 +30,21 @@ local function create_tides()
          FOREIGN KEY (port_name) REFERENCES primary_ports(name)
       )
    ]]))
+
+   local result = assert(cx:execute([[
+      CREATE TABLE primary_tide_event_sources(
+         content_id VARCHAR(32),
+         filename VARCHAR(100),
+         date_imported DATETIME,
+
+         port_name VARCHAR(50),
+         year DATETIME,
+
+         PRIMARY KEY (content_id)
+         FOREIGN KEY (port_name) REFERENCES primary_ports(name)
+      )
+   ]]))
+
    local result = assert(cx:commit())
 end   
 
@@ -92,13 +108,23 @@ local function read_linz_tide_file(f, events)
       end
    end
 
-   local result = assert(cx:commit())
    return events
 end
 
+
+local file_id = require 'file_id'
 local function read_linz_tide_filename(filename, events)
+   local content_id = file_id.md5sum(filename)
    local f = io.open(filename)
    local events = read_linz_tide_file(f, events)
+
+   local result = assert(cx:execute(string.format([[
+      INSERT INTO 'primary_tide_event_sources'
+      VALUES ("%s", '%s', datetime('now'), '', '')]], content_id, filename)
+   ))
+
+   local result = assert(cx:commit())
+
    return events
 end
 

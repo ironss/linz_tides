@@ -60,6 +60,17 @@ local function create_tables()
       )
    ]]))
 
+   local result = assert(cx:execute([[
+      CREATE TABLE port_sources(
+         content_id VARCHAR(32),
+         filename VARCHAR(100),
+         date_imported DATETIME,
+
+         PRIMARY KEY (content_id)
+      )
+   ]]))
+
+
    local result = cx:commit()
 end
 
@@ -153,6 +164,14 @@ local function create_linz_ports_database(filename)
          end
       end
    end
+
+   local file_id = require 'file_id'
+   local content_id = file_id.md5sum(filename)
+   
+   local result = assert(cx:execute(string.format([[
+      INSERT INTO 'port_sources'
+      VALUES ("%s", '%s', datetime('now'))]], content_id, filename)
+   ))
 
    local result = assert(cx:commit())
 end
