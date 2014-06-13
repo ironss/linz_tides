@@ -84,9 +84,18 @@ local function datetime_create(time_utc, ticks_utc, ticks_per_second, preferred_
       return datetime_format(format, self, tz)
    end
 
+   timestamp.add = function(self, offset)
+      if type(offset) == 'number' then
+         timestamp.time_utc = timestamp.time_utc + offset
+      end
+      return timestamp
+      
+   end
    return timestamp
 end
 
+
+local dateparse = require 'dateparse'
 
 local function datetime_new(value, ...)
    local timestamp
@@ -103,6 +112,8 @@ local function datetime_new(value, ...)
       end
    elseif type(value) == 'number' then
       timestamp = datetime_create(value)
+   elseif type(value) == 'string' then
+      timestamp = datetime_create(dateparse.parse(value))
    end
    
    return timestamp

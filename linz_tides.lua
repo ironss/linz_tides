@@ -55,8 +55,6 @@ local ports = require 'linz_ports'
 -- Tide events
 -- -----------
 
-local datetime = require('datetime')
-
 local function Event_new(e)
    print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    local result = assert(cx:execute(string.format([[
@@ -64,6 +62,9 @@ local function Event_new(e)
       VALUES ("%s", '%s', '%s', '%3.1f')]], e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    ))
 end
+
+
+local datetime = require('datetime')
 
 -- Extract tidal data from an open file
 local function read_linz_tide_file(f)
@@ -113,6 +114,7 @@ local function read_linz_tide_filename(filename)
    return events
 end
 
+--[=[
 
 local function calculate_secondary_events(primary_events, secondary_port_name, secondary_events)
    local secondary_port = ports.find_secondary(secondary_port_name)
@@ -145,12 +147,7 @@ local function calculate_secondary_events(primary_events, secondary_port_name, s
    return events
 end
 
-
-local function print_linz_events(events, tz)
-   for _, e in ipairs(events) do
-      print(e.port, e.timestamp:format('%Y-%m-%d\t%H%M\t'..tz, tz), string.format("% 3.1f", e.height))
-   end
-end
+--]=]
 
 
 
@@ -183,24 +180,22 @@ local function get_events_secondary(port, start_date, end_date)
    for _, primary_event in ipairs(primary_events) do
       local ev = {}      
       ev.reference_port = primary_event.port_name
-      ev.primary_event_time = primary_event.event_time
+      ev.reference_event_time = primary_event.event_time
       ev.event_type = primary_event.event_type
       ev.port_name = port.name
       
       -- For details on how to calculate times and heights of tides at secondary ports, refer to
       -- http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/mfth-of-hlw.pdf
       if primary_event.event_type == 'high' then
-         ev.event_time = ev.primary_event_time .. ' ' .. secondary_port.mean_delta_hw --datetime.new(primary_event.timestamp.time_utc + secondary_port.high_delta_mean)
+         ev.event_time = datetime.new(ev.reference_event_time):add(secondary_port.mean_delta_hw):format('%Y-%m-%d %H:%M:%S')
       elseif ev.event_type == 'low' then
-          ev.event_time = ev.primary_event_time .. ' ' .. secondary_port.mean_delta_lw -- datetime.new(primary_event.timestamp.time_utc + secondary_port.low_delta_mean)
+          ev.event_time = datetime.new(ev.reference_event_time):add(secondary_port.mean_delta_lw):format('%Y-%m-%d %H:%M:%S')
       end
       
       local primary_rise_of_tide = primary_event.height_of_tide - reference_port.mean_sea_level
       local rise_of_tide = primary_rise_of_tide * secondary_port.range_ratio
       ev.height_of_tide = rise_of_tide + port.mean_sea_level
 
---         print(primary_event.port, primary_event.timestamp:format('%H%M', 'NZDT'), primary_event.height, primary_port.MSL, primary_event.ROT)
---         print(ev.port, ev.timestamp:format('%H%M', 'NZDT'), secondary_port.MSL, secondary_port.ratio, ev.ROT, ev.height)
       events[#events+1] = ev
    end
    
@@ -227,9 +222,6 @@ M.create_tables = create_tides
 M.populate_tables = read_linz_tide_filename
 
 M.get_events = get_events
-
-M.calculate_secondary_events = calculate_secondary_events
-M.print_events = print_linz_events
 
 return M
 

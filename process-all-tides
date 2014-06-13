@@ -15,7 +15,7 @@ for _, trip in ipairs(xtrips) do
          if event.reference_port == nil then
             print(event.port_name, event.event_time)
          else
-            print(event.port_name, event.event_time, '('..event.reference_port..')')
+            print(event.port_name, event.event_time, event.event_type, string.format('%3.1f m', event.height_of_tide) ) --,  '('..event.reference_port..':'..event.reference_event_time..')')
          end
       end
    end
