@@ -114,42 +114,6 @@ local function read_linz_tide_filename(filename)
    return events
 end
 
---[=[
-
-local function calculate_secondary_events(primary_events, secondary_port_name, secondary_events)
-   local secondary_port = ports.find_secondary(secondary_port_name)
-   local primary_port_name = secondary_port.reference_port
-   local primary_port = ports.find(primary_port_name)
-
-   local events = secondary_events or {}
-   for _, primary_event in ipairs(primary_events) do
-      if primary_event.port == secondary_port.reference then
-         local ev = { port=secondary_port.name, tz=primary_event.tz, event_type=primary_event.event_type }
-         
-         -- For details on how to calculate times and heights of tides at secondary ports, refer to
-         -- http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/mfth-of-hlw.pdf
-         if ev.event_type == 'high' then
-            ev.timestamp = datetime.new(primary_event.timestamp.time_utc + secondary_port.high_delta_mean)
-         elseif ev.event_type == 'low' then
-            ev.timestamp = datetime.new(primary_event.timestamp.time_utc + secondary_port.low_delta_mean)
-         end
-         
-         primary_event.ROT = primary_event.height - primary_port.MSL
-         ev.ROT = primary_event.ROT * secondary_port.ratio
-         ev.height = ev.ROT + secondary_port.MSL
-
---         print(primary_event.port, primary_event.timestamp:format('%H%M', 'NZDT'), primary_event.height, primary_port.MSL, primary_event.ROT)
---         print(ev.port, ev.timestamp:format('%H%M', 'NZDT'), secondary_port.MSL, secondary_port.ratio, ev.ROT, ev.height)
-         events[#events+1] = ev
-      end
-   end
-   
-   return events
-end
-
---]=]
-
-
 
 local function get_events_primary(port, start_date, end_date)
    local port_name = port.name

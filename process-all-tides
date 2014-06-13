@@ -21,23 +21,3 @@ for _, trip in ipairs(xtrips) do
    end
 end
 
---[[
-local events = tides.get_events('Lyttelton', '2014-05-06', '2014-05-08')
-for _, event in ipairs(events) do
-   print(event.port_name, event.event_time, event.event_type, event.height_of_tide)
-end
-
-local all_events = {}
-for _, v in ipairs(primary_events) do
-   print(v)
-   all_events[#all_events+1] = v
-end
-
-for _, v in ipairs(secondary_ports) do
-   tides.calculate_secondary_events(primary_events, v, all_events)
-end
-
-tides.print_events(all_events, 'NZST')
---]]
-
-
