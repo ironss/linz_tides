@@ -3,8 +3,6 @@
 -- A list of all of the LINZ ports, along with the data needed to compute 
 -- tide times and heights
 
--- local ports = require 'linz_ports'
-
 local ports_filename = 'linz_tides.db'
 
 local driver = require 'luasql.sqlite3'
@@ -24,40 +22,39 @@ end
 
 local function create_tables()
    local result = assert(cx:execute([[
-      CREATE TABLE ports(
+      CREATE TABLE IF NOT EXISTS ports(
          name VARCHAR(50),
          id VARCHAR(10),
          latitude REAL,
          longitude REAL,
          mean_sea_level REAL,
+         _subtype VARCHAR(10),
 
          PRIMARY KEY (name)
-      )
+      );
    ]]))
    
    local result = assert(cx:execute([[
-      CREATE TABLE primary_ports(
+      CREATE TABLE IF NOT EXISTS primary_ports(
          name VARCHAR(50),
-         id VARCHAR(10),
          
          PRIMARY KEY (name)
          FOREIGN KEY (name) REFERENCES ports(name)
-      )
+      );
    ]]))
    
    local result = assert(cx:execute([[
-      CREATE TABLE secondary_ports(
+      CREATE TABLE IF NOT EXISTS secondary_ports(
          name VARCHAR(50),
-         id VARCHAR(10),
          reference_port VARCHAR(50),
          mean_delta_hw REAL,
          mean_delta_lw REAL,
-         ratio REAL,
+         range_ratio REAL,
          
          PRIMARY KEY (name)
          FOREIGN KEY (name) REFERENCES ports(name)
          FOREIGN KEY (reference_port) REFERENCES primary_ports(name)
-      )
+      );
    ]]))
 
    local result = assert(cx:execute([[
@@ -67,7 +64,7 @@ local function create_tables()
          date_imported DATETIME,
 
          PRIMARY KEY (content_id)
-      )
+      );
    ]]))
 
 
@@ -97,29 +94,29 @@ local port_name_translation =
 }
 
 
-local function Port_new(p)
+local function Port_new(p, subtype)
    print(p.name, p.no, p.latitude, p.longitude, p.MSL)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'ports'
-      VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f')]], p.name, p.no, p.latitude, p.longitude, p.MSL)
+      VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f', '%s')]], p.name, p.no, p.latitude, p.longitude, p.MSL, subtype)
    ))
    return p
 end
 
 local function Primary_Port_new(p)
-   Port_new(p)
+   Port_new(p, 'primary_port')
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_ports'
-      VALUES ("%s", '%s')]], p.name, p.no)
+      VALUES ("%s")]], p.name)
    ))
    return p
 end
 
 local function Secondary_Port_new(p)
-   Port_new(p)
+   Port_new(p, 'secondary_port')
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'secondary_ports'
-      VALUES ("%s", '%s', '%s', '%6.1f', '%6.1f', '%6.2f')]], p.name, p.no, p.reference, p.high_delta_mean, p.low_delta_mean, p.ratio)
+      VALUES ("%s", '%s', '%6.1f', '%6.1f', '%6.2f')]], p.name, p.reference, p.high_delta_mean, p.low_delta_mean, p.ratio)
    ))
    return p
 end
@@ -176,6 +173,26 @@ local function create_linz_ports_database(filename)
    local result = assert(cx:commit())
 end
 
+local function rows(connection, statement)
+   local cur = assert(connection:execute(statement))
+   return function()
+      return cur:fetch({}, 'a')
+   end
+end
+
+local function tablify(connection, statement)
+   local t = {}
+   for row in rows(connection, statement) do
+      t[#t+1] = row
+   end
+   
+   return t
+end
+
+local function ports_find_all(name)
+   return tablify(cx, 'SELECT * from ports')
+end
+
 
 local function ports_find_any(name)
    local cur = assert(cx:execute([[
@@ -187,7 +204,7 @@ end
 
 local function ports_find_primary(name)
    local cur = assert(cx:execute([[
-      SELECT * from secondary_ports WHERE name = "]] .. name .. [["
+      SELECT * from primary_ports WHERE name = "]] .. name .. [["
    ]]))
    local row = cur:fetch({}, 'a')
    return row

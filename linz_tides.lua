@@ -20,7 +20,7 @@ end
 
 local function create_tides()
    local result = assert(cx:execute([[
-      CREATE TABLE primary_tide_events(
+      CREATE TABLE IF NOT EXISTS primary_tide_events(
          port_name VARCHAR(50),
          event_time DATETIME,
          event_type VARCHAR(10),
@@ -28,11 +28,11 @@ local function create_tides()
 
          PRIMARY KEY (port_name, event_time)
          FOREIGN KEY (port_name) REFERENCES primary_ports(name)
-      )
+      );
    ]]))
 
    local result = assert(cx:execute([[
-      CREATE TABLE primary_tide_event_sources(
+      CREATE TABLE IF NOT EXISTS primary_tide_event_sources(
          content_id VARCHAR(32),
          filename VARCHAR(100),
          date_imported DATETIME,
@@ -42,7 +42,7 @@ local function create_tides()
 
          PRIMARY KEY (content_id)
          FOREIGN KEY (port_name) REFERENCES primary_ports(name)
-      )
+      );
    ]]))
 
    local result = assert(cx:commit())
@@ -57,27 +57,16 @@ local ports = require 'linz_ports'
 
 local datetime = require('datetime')
 
-local events = {}
 local function Event_new(e)
-   events[#events+1] = e
-
    print(e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_tide_events'
       VALUES ("%s", '%s', '%s', '%3.1f')]], e.port, e.timestamp:format('%Y-%m-%d %H:%M:%S', 'UTC'), e.event_type, e.height)
    ))
-
-   return e
-end
-
-local function Events_new(event_list)
-   for _, e in ipairs(event_list) do
-      Event_new(e)
-   end
 end
 
 -- Extract tidal data from an open file
-local function read_linz_tide_file(f, events)
+local function read_linz_tide_file(f)
    local l1 = f:read('*l')
    local _, port, latitude, longitude = l1:match('^(.-),(.-),(.-),(.-)%c*$')
    local l2 = f:read('*l')
@@ -96,27 +85,23 @@ local function read_linz_tide_file(f, events)
       if day ~= nil then
          local events = {}
 
-         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1, event_type=h1 > h2 and "high" or "low" }
-         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=h2, event_type=h2 > h3 and "high" or "low" }
-         events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=h3, event_type=h3 > h2 and "high" or "low" }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t1:sub(1, 2), min=t1:sub(4, 5), tz=tz}, height=h1, event_type=h1 > h2 and "high" or "low" }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t2:sub(1, 2), min=t2:sub(4, 5), tz=tz}, height=h2, event_type=h2 > h3 and "high" or "low" }
+         events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t3:sub(1, 2), min=t3:sub(4, 5), tz=tz}, height=h3, event_type=h3 > h2 and "high" or "low" }
          if (t4 ~= '') then
    --         print (port, year, month, day, tz, t4, h4)
-            events[#events+1] = { port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=h4, event_type=h4 > h3 and "high" or "low" }
+            events[#events+1] = Event_new{ port=port, timestamp=datetime.new{year=year, month=month, day=day, hour=t4:sub(1, 2), min=t4:sub(4, 5), tz=tz}, height=h4, event_type=h4 > h3 and "high" or "low" }
          end
-         
-         Events_new(events)
       end
    end
-
-   return events
 end
 
 
 local file_id = require 'file_id'
-local function read_linz_tide_filename(filename, events)
+local function read_linz_tide_filename(filename)
    local content_id = file_id.md5sum(filename)
    local f = io.open(filename)
-   local events = read_linz_tide_file(f, events)
+   local events = read_linz_tide_file(f)
 
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_tide_event_sources'
@@ -168,11 +153,80 @@ local function print_linz_events(events, tz)
 end
 
 
+
+local function get_events_primary(port, start_date, end_date)
+   local port_name = port.name
+   local cur = assert(cx:execute(string.format([[
+      SELECT * FROM primary_tide_events 
+      WHERE port_name = "%s" 
+         AND event_time > datetime("%s") 
+         AND event_time < datetime("%s")
+   ]], port_name, start_date, end_date)))
+   
+   local events = {}
+   row = cur:fetch({}, "a")
+   while row do
+      events[#events+1] = row
+      row = cur:fetch({}, "a")
+   end
+   cur:close()
+
+   return events
+end
+
+local function get_events_secondary(port, start_date, end_date)
+   local secondary_port = ports.find_secondary(port.name)
+   local reference_port = ports.find(secondary_port.reference_port)
+   local primary_events = get_events_primary(reference_port, start_date, end_date)
+   
+   local events = {}
+   for _, primary_event in ipairs(primary_events) do
+      local ev = {}      
+      ev.reference_port = primary_event.port_name
+      ev.primary_event_time = primary_event.event_time
+      ev.event_type = primary_event.event_type
+      ev.port_name = port.name
+      
+      -- For details on how to calculate times and heights of tides at secondary ports, refer to
+      -- http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/mfth-of-hlw.pdf
+      if primary_event.event_type == 'high' then
+         ev.event_time = ev.primary_event_time .. ' ' .. secondary_port.mean_delta_hw --datetime.new(primary_event.timestamp.time_utc + secondary_port.high_delta_mean)
+      elseif ev.event_type == 'low' then
+          ev.event_time = ev.primary_event_time .. ' ' .. secondary_port.mean_delta_lw -- datetime.new(primary_event.timestamp.time_utc + secondary_port.low_delta_mean)
+      end
+      
+      local primary_rise_of_tide = primary_event.height_of_tide - reference_port.mean_sea_level
+      local rise_of_tide = primary_rise_of_tide * secondary_port.range_ratio
+      ev.height_of_tide = rise_of_tide + port.mean_sea_level
+
+--         print(primary_event.port, primary_event.timestamp:format('%H%M', 'NZDT'), primary_event.height, primary_port.MSL, primary_event.ROT)
+--         print(ev.port, ev.timestamp:format('%H%M', 'NZDT'), secondary_port.MSL, secondary_port.ratio, ev.ROT, ev.height)
+      events[#events+1] = ev
+   end
+   
+   return events
+end
+
+local function get_events(port, start_date, end_date)
+   if type(port) == 'string' then
+      port = ports.find(port)
+   end
+
+--   print(port, port.name, port._subtype)
+   if port._subtype == 'primary_port' then
+      return get_events_primary(port, start_date, end_date)
+   else
+      return get_events_secondary(port, start_date, end_date)
+   end
+end
+
 local M={}
 
 M.erase_tables = erase_tides
 M.create_tables = create_tides
 M.populate_tables = read_linz_tide_filename
+
+M.get_events = get_events
 
 M.calculate_secondary_events = calculate_secondary_events
 M.print_events = print_linz_events
