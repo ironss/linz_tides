@@ -20,15 +20,37 @@ end
 
 local function create_tides()
    local result = assert(cx:execute([[
-      CREATE TABLE IF NOT EXISTS primary_tide_events(
+      CREATE TABLE IF NOT EXISTS primary_tide_events (
          port_name VARCHAR(50),
          event_time DATETIME,
          event_type VARCHAR(10),
          height_of_tide REAL,
 
          PRIMARY KEY (port_name, event_time)
-         FOREIGN KEY (port_name) REFERENCES primary_ports(name)
+         FOREIGN KEY (port_name) REFERENCES primary_ports (name)
       );
+   ]]))
+
+   local result = assert(cx:execute([[
+      CREATE TABLE IF NOT EXISTS secondary_tide_events (
+         port_name VARCHAR(50),
+         event_time DATETIME,
+         event_type VARCHAR(10),
+         height_of_tide REAL,
+         
+         reference_port_name VARCHAR(50),
+         reference_event_time DATETIME,
+
+         PRIMARY KEY (port_name, event_time)
+         FOREIGN KEY (port_name) REFERENCES primary_ports (name)
+         FOREIGN KEY (reference_port_name, reference_event_time) REFERENCES primary_tides_events (port_name, event_time)
+      );
+   ]]))
+
+   local result = assert(cx:execute([[
+      CREATE VIEW IF NOT EXISTS tide_events 
+      AS SELECT port_name, event_time, event_type, height_of_tide, "primary" FROM primary_tide_events
+      UNION SELECT port_name, event_time, event_type, height_of_tide, "secondary" FROM secondary_tide_events
    ]]))
 
    local result = assert(cx:execute([[
@@ -136,6 +158,10 @@ local function get_events_primary(port, start_date, end_date)
 end
 
 local function get_events_secondary(port, start_date, end_date)
+   print(port.name)
+   for k, v in pairs(port) do
+      print(k, v)
+   end
    local secondary_port = ports.find_secondary(port.name)
    local reference_port = ports.find(secondary_port.reference_port)
    local primary_events = get_events_primary(reference_port, start_date, end_date)
@@ -166,6 +192,7 @@ local function get_events_secondary(port, start_date, end_date)
    return events
 end
 
+
 local function get_events(port, start_date, end_date)
    if type(port) == 'string' then
       port = ports.find(port)
@@ -178,6 +205,7 @@ local function get_events(port, start_date, end_date)
       return get_events_secondary(port, start_date, end_date)
    end
 end
+
 
 local M={}
 

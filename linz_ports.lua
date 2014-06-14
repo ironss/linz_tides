@@ -21,7 +21,7 @@ local function erase_tables()
 end
 
 local function create_tables()
-   local result = assert(cx:execute([[
+--[=[   local result = assert(cx:execute([[
       CREATE TABLE IF NOT EXISTS ports(
          name VARCHAR(50),
          id VARCHAR(10),
@@ -33,10 +33,15 @@ local function create_tables()
          PRIMARY KEY (name)
       );
    ]]))
+--]=]
    
    local result = assert(cx:execute([[
-      CREATE TABLE IF NOT EXISTS primary_ports(
+      CREATE TABLE IF NOT EXISTS primary_ports (
          name VARCHAR(50),
+         id VARCHAR(10),
+         latitude REAL,
+         longitude REAL,
+         mean_sea_level REAL,
          
          PRIMARY KEY (name)
          FOREIGN KEY (name) REFERENCES ports(name)
@@ -44,8 +49,13 @@ local function create_tables()
    ]]))
    
    local result = assert(cx:execute([[
-      CREATE TABLE IF NOT EXISTS secondary_ports(
+      CREATE TABLE IF NOT EXISTS secondary_ports (
          name VARCHAR(50),
+         id VARCHAR(10),
+         latitude REAL,
+         longitude REAL,
+         mean_sea_level REAL,
+
          reference_port VARCHAR(50),
          mean_delta_hw REAL,
          mean_delta_lw REAL,
@@ -56,6 +66,13 @@ local function create_tables()
          FOREIGN KEY (reference_port) REFERENCES primary_ports(name)
       );
    ]]))
+
+   local result = assert(cx:execute([[
+      CREATE VIEW IF NOT EXISTS ports
+      AS SELECT name, id, latitude, longitude, mean_sea_level, "primary_port" AS _subtype FROM primary_ports
+      UNION SELECT name, id, latitude, longitude, mean_sea_level, "secondary_port" AS _subtype FROM secondary_ports
+   ]]))
+
 
    local result = assert(cx:execute([[
       CREATE TABLE port_sources(
@@ -96,10 +113,7 @@ local port_name_translation =
 
 local function Port_new(p, subtype)
    print(p.name, p.no, p.latitude, p.longitude, p.MSL)
-   local result = assert(cx:execute(string.format([[
-      INSERT INTO 'ports'
-      VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f', '%s')]], p.name, p.no, p.latitude, p.longitude, p.MSL, subtype)
-   ))
+
    return p
 end
 
@@ -107,8 +121,9 @@ local function Primary_Port_new(p)
    Port_new(p, 'primary_port')
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_ports'
-      VALUES ("%s")]], p.name)
+      VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f')]], p.name, p.no, p.latitude, p.longitude, p.MSL)
    ))
+
    return p
 end
 
@@ -116,8 +131,9 @@ local function Secondary_Port_new(p)
    Port_new(p, 'secondary_port')
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'secondary_ports'
-      VALUES ("%s", '%s', '%6.1f', '%6.1f', '%6.2f')]], p.name, p.reference, p.high_delta_mean, p.low_delta_mean, p.ratio)
+      VALUES ("%s", '%s', '%3.6f', '%3.6f', '%3.1f', '%s', '%6.1f', '%6.1f', '%6.2f')]], p.name, p.no, p.latitude, p.longitude, p.MSL, p.reference, p.high_delta_mean, p.low_delta_mean, p.ratio)
    ))
+
    return p
 end
 

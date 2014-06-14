@@ -50,6 +50,17 @@ local function create_trips()
       );
    ]]))
 
+--[=[
+   local result = assert(cx:execute([[
+      CREATE TRIGGER IF NOT EXISTS create_trip
+      AFTER INSERT ON trips
+      BEGIN
+         INSERT OR IGNORE INTO seconary_tide_events
+         VALUES (expr, expr )
+      END
+   ]]))
+--]=]
+
    local result = assert(cx:commit())
 end
 
