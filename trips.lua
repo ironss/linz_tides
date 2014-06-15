@@ -56,7 +56,8 @@ local function create_trips()
       AFTER INSERT ON trips
       BEGIN
          INSERT OR IGNORE INTO secondary_tide_events
-         VALUES ("test", strftime('%Y-%m-%d %H:%M:%f'), 'hilo', 1.23, 'Nelson', datetime('2015-12-31 07:38:00'));
+         SELECT port_name, event_time, event_type, height_of_tide, port_name, event_time FROM primary_tide_events
+         WHERE port_name='Nelson' AND event_time > NEW.start_date AND event_time < NEW.end_date;
       END
    ]]))
 
@@ -200,3 +201,15 @@ M.ports_in_trip = get_ports_in_trip
 
 return M
 
+
+--[[
+List of ports with start and end dates:
+
+'select port_name, start_date, end_date from trips, region_ports where trips.region_name=region_ports.region_name;'
+
+
+List of ports with the associated reference port:
+
+'select primary_ports.name, primary_ports.name from region_ports, primary_ports where region_ports.port_name=primary_ports.name union select secondary_ports.name, secondary_ports.reference_port from region_ports, secondary_ports where region_ports.port_name=secondary_ports.name;'
+
+--]]
