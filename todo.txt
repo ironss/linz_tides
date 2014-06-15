@@ -4,6 +4,16 @@ Download tide predictions for Auckland 2013, 2014 and 2015.
 
 
 
+Things to plan
+==============
+
+1. Get copy of Royal Akarana Cruising Club guide from library.
+2. Find good anchorages and mark on the chart.
+3. Find good places to go ashore and mark on the chart.
+4. Find good walks and mark on the chart.
+5. Find places to get food, etc.
+
+
 
 How to store subtypes-supertype in a SQL database.
 
