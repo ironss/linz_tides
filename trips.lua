@@ -110,6 +110,7 @@ local function populate_trips()
             'Opua',
             'Russell',
             'Waitangi',
+            'Auckland',
          },
       },
    }
