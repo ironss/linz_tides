@@ -1,5 +1,6 @@
 Import tide predictions into SQL database, rather than parsing CSV. +improvement
-Use SQL prepared statements rather than string substitution. +bug
+During import, use SQL prepared statements rather than string substitution. +bug
+Download tide predictions for Auckland 2013, 2014 and 2015.
 
 
 
