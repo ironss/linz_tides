@@ -57,19 +57,13 @@ local function create_tides()
            CASE 
               when event_type="high" then datetime(julianday(event_time) + mean_delta_hw/86400)
               WHEN event_type="low" then datetime(julianday(event_time) + mean_delta_lw/86400)
-           END as event_time,
-           event_type as event_type, 
-           secondary_ports.mean_sea_level + (primary_tide_events.height_of_tide - primary_ports.mean_sea_level) * secondary_ports.range_ratio as height_of_tide,
+           END AS event_time,
+           event_type AS event_type, 
+           secondary_ports.mean_sea_level + (primary_tide_events.height_of_tide - primary_ports.mean_sea_level) * secondary_ports.range_ratio AS height_of_tide,
         
-           primary_tide_events.port_name as reference_port_name, 
-           event_time as reference_event_time, 
-
-           event_type, height_of_tide, 
-           primary_ports.mean_sea_level, 
-           secondary_ports.mean_sea_level, 
-           secondary_ports.range_ratio,
-           secondary_ports.mean_delta_hw, secondary_ports.mean_delta_lw
-        
+           primary_tide_events.port_name AS reference_port_name, 
+           event_time AS reference_event_time
+       
         FROM 
            secondary_ports, 
            primary_ports, 
