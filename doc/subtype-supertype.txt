@@ -1,0 +1,178 @@
+How to store subtypes-supertype in a SQL database
+=================================================
+
+LINZ generates and distributes tide predictions tables for 10--15 primary 
+ports. A single tide prediction gives the predicted time and height of the 
+tide at that port.
+
+However, the tide can vary by many minutes over a relatively short distance, 
+especially around a deep bay or river, or within a large estuary with a narrow 
+entrance. So LINZ also distributes scaling factors to allow calculation of the
+time and height of tide at a large number secondary ports.
+
+The calculations are described elsewhere.
+
+When planning a trip, you want to know the time and height of the tide at
+many ports, irrespective of whether they are primary or secondary ports. This
+suggests that 'primary port' and 'secondary port' are both subtypes of 'port'.
+
+This paper suggests some ways of storing subtype-supertypes and the tradeoffs
+to be made.
+
+Port
+   * Name
+   - id
+   - latitude
+   - longitude
+   - mean_sea_level
+
+
+Primary Port
+   * Name
+   
+Secondary Port
+   * Name
+   - reference_port
+   - mean_delta_hw
+   - mean_delta_lw
+   - range_ratio
+
+
+Alternatives
+------------
+
+1. store as N+1 separate tables (N subtypes, 1 supertype), with an additional 
+   attribute in the supertype to indicate the subtype. Use views to combine
+   the supertype attributes into the subtype.
+
+2. store as N subtype tables, with the supertype attributes stored in the 
+   subtype tables, and an additional attribute to indicate the subtype. Use
+   a view to construct the supertype.
+
+3. store as 1 super-table with one additional attribute to indicate the subtype,
+   and the union of all of the data types from the subtype.  
+
+
+Alternative 1
+-------------
+
+CREATE TABLE ports (
+   name TEXT,
+   id TEXT,
+   latitude REAL,
+   longitude REAL,
+   mean_sea_level REAL,
+   
+   port_type TEXT,
+   
+   PRIMARY KEY (name)
+);
+
+CREATE TABLE _primary_ports (
+   name TEXT,
+   
+   PRIMARY KEY (name)
+   FOREIGN KEY (name) REFERENCES ports (name)
+);
+
+CREATE TABLE _secondary_ports (
+   name TEXT,
+   
+   reference_port_name TEXT,
+   mean_delta_hw REAL,
+   mean_delta_lw REAL,
+   range_ratio REAL,
+   
+   PRIMARY KEY (name)
+   FOREIGN KEY (name) REFERENCES ports (name)
+   FOREIGN KEY (reference_port_name) REFERENCES primary_ports (name)
+   
+CREATE VIEW primary_ports AS
+   SELECT ports.name, _primary_ports.id, latitude, longitude, mean_sea_level
+   FROM ports, _primary_ports
+   WHERE ports.name = _primary_ports.name
+
+CREATE VIEW secondary_ports AS
+   SELECT ports.name, _secondary_ports.id, latitude, longitude, mean_sea_level
+   FROM ports, _secondary_ports
+   WHERE ports.name = _secondary_ports.name
+
+
+Advantages
+----------
+
+* Primary keys help prevent creating different subtypes with the same 
+  primary key
+
+
+Disadvantages
+-------------
+
+* When creating an instance, you have to create both the subtype instance
+  and the supertype instance
+
+
+
+Alternative 2
+-------------
+
+CREATE TABLE primary_ports (
+   name TEXT,
+   id TEXT,
+   latitude REAL,
+   longitude REAL,
+   mean_sea_level REAL,
+   
+   PRIMARY KEY (name)
+);
+
+CREATE TABLE secondary_ports (
+   name TEXT,
+   id TEXT,
+   latitude REAL,
+   longitude REAL,
+   mean_sea_level REAL,
+   
+   reference_port_name TEXT,
+   mean_delta_hw REAL,
+   mean_delta_lw REAL,
+   range_ratio REAL,
+   
+   PRIMARY KEY (name)
+   FOREIGN KEY (reference_port_name) REFERENCES primary_ports (name)
+   
+CREATE VIEW ports AS
+   SELECT name, id, latitude, longitude, mean_sea_level, "primary" AS port_type 
+   FROM primary_ports
+UNION
+   SELECT name, id, latitude, longitude, mean_sea_level, "secondary" AS port_type
+   FROM secondary_ports
+
+
+Advantages
+..........
+
+* 
+
+Disadvantages
+.............
+
+* There is no easy way to avoid creating instances of different subtypes with
+  the same primary keys. 
+
+* When changing an attribute in the supertype, you have to change the supertype
+  view as well as all subtypes.  
+  
+
+
+LINZ database implementation
+============================
+
+The LINZ tide database calculator has two sets of subtypes-supertypes. 
+
+   * a port can be either a primary_port or a secondary_port
+   * a tide_event can be either a primary_tide_event or a secondary_tide_event.
+   
+In both cases, the subtypes are stored as tables and the supertype composed
+using a view (alternative 2).
+
