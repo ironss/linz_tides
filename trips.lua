@@ -50,7 +50,7 @@ local function create_trips()
       );
    ]]))
 
-
+--[=[
    local result = assert(cx:execute([[
       CREATE TRIGGER IF NOT EXISTS create_trip
       AFTER INSERT ON trips
@@ -80,6 +80,20 @@ local function create_trips()
            AND   primary_tide_events.port_name=secondary_ports.reference_port 
         ; 
       END;
+   ]]))
+
+--]=]
+
+   local result = assert(cx:execute([[
+      CREATE VIEW IF NOT EXISTS trip_tide_events
+      AS 
+         SELECT trips.region_name, tide_events.port_name, event_time, event_type, height_of_tide 
+         FROM trips, region_ports, tide_events
+         WHERE
+                event_time BETWEEN trips.start_date AND trips.end_date
+            AND trips.region_name = region_ports.region_name
+            AND region_ports.port_name = tide_events.port_name
+        ; 
    ]]))
 
    local result = assert(cx:commit())
@@ -115,6 +129,7 @@ local function populate_trips()
          { 
             'French Bay - Akaroa',
             'Tikao Bay',
+            'Lyttelton',
          }
       },
       {  'Abel Tasman',
@@ -122,6 +137,7 @@ local function populate_trips()
             'Motueka',
             'Kaiteriteri',
             'Astrolabe Roadstead',
+            'Nelson',
          }
       },
       {  'Bay of Islands',
@@ -131,6 +147,7 @@ local function populate_trips()
             'Opua',
             'Russell',
             'Waitangi',
+            'Marsden Point',
             'Auckland',
          },
       },

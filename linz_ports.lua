@@ -84,7 +84,6 @@ local function create_tables()
       );
    ]]))
 
-
    local result = cx:commit()
 end
 

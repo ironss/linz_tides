@@ -31,6 +31,7 @@ local function create_tides()
       );
    ]]))
 
+--[=[
    local result = assert(cx:execute([[
       CREATE TABLE IF NOT EXISTS secondary_tide_events (
          port_name VARCHAR(50),
@@ -46,11 +47,44 @@ local function create_tides()
          FOREIGN KEY (reference_port_name, reference_event_time) REFERENCES primary_tides_events (port_name, event_time)
       );
    ]]))
+--]=]
+
+   local result = assert(cx:execute([[
+      CREATE VIEW IF NOT EXISTS secondary_tide_events
+      AS
+        SELECT 
+           secondary_ports.name as port_name, 
+           CASE 
+              when event_type="high" then datetime(julianday(event_time) + mean_delta_hw/86400)
+              WHEN event_type="low" then datetime(julianday(event_time) + mean_delta_lw/86400)
+           END as event_time,
+           event_type as event_type, 
+           secondary_ports.mean_sea_level + (primary_tide_events.height_of_tide - primary_ports.mean_sea_level) * secondary_ports.range_ratio as height_of_tide,
+        
+           primary_tide_events.port_name as reference_port_name, 
+           event_time as reference_event_time, 
+
+           event_type, height_of_tide, 
+           primary_ports.mean_sea_level, 
+           secondary_ports.mean_sea_level, 
+           secondary_ports.range_ratio,
+           secondary_ports.mean_delta_hw, secondary_ports.mean_delta_lw
+        
+        FROM 
+           secondary_ports, 
+           primary_ports, 
+           primary_tide_events 
+
+        WHERE 
+                 secondary_ports.reference_port=primary_ports.name
+           AND   primary_tide_events.port_name=secondary_ports.reference_port 
+      ;
+   ]]))
 
    local result = assert(cx:execute([[
       CREATE VIEW IF NOT EXISTS tide_events 
-      AS SELECT port_name, event_time, event_type, height_of_tide, "primary" FROM primary_tide_events
-      UNION SELECT port_name, event_time, event_type, height_of_tide, "secondary" FROM secondary_tide_events
+      AS SELECT port_name, event_time, event_type, height_of_tide, NULL as reference_port, NULL as reference_event_time FROM primary_tide_events
+      UNION SELECT port_name, event_time, event_type, height_of_tide, reference_port_name, reference_event_time FROM secondary_tide_events
    ]]))
 
    local result = assert(cx:execute([[
