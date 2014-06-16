@@ -56,9 +56,30 @@ local function create_trips()
       AFTER INSERT ON trips
       BEGIN
          INSERT OR IGNORE INTO secondary_tide_events
-         SELECT port_name, event_time, event_type, height_of_tide, port_name, event_time FROM primary_tide_events
-         WHERE port_name='Nelson' AND event_time > NEW.start_date AND event_time < NEW.end_date;
-      END
+         SELECT 
+           secondary_ports.name, 
+           CASE 
+              when event_type="high" then datetime(julianday(event_time) + mean_delta_hw/86400)
+              WHEN event_type="low" then datetime(julianday(event_time) + mean_delta_lw/86400)
+           END,
+           event_type, 
+           secondary_ports.mean_sea_level + (primary_tide_events.height_of_tide - primary_ports.mean_sea_level) * secondary_ports.range_ratio,
+           primary_tide_events.port_name, event_time
+        
+        FROM 
+           region_ports, 
+           secondary_ports, 
+           primary_ports, 
+           primary_tide_events 
+
+        WHERE 
+                 region_name=NEW.region_name 
+           AND   primary_tide_events.event_time BETWEEN NEW.start_date AND NEW.end_date
+           AND   region_ports.port_name=secondary_ports.name
+           AND   secondary_ports.reference_port=primary_ports.name
+           AND   primary_tide_events.port_name=secondary_ports.reference_port 
+        ; 
+      END;
    ]]))
 
    local result = assert(cx:commit())
@@ -200,16 +221,3 @@ M.regions = get_regions
 M.ports_in_trip = get_ports_in_trip
 
 return M
-
-
---[[
-List of ports with start and end dates:
-
-'select port_name, start_date, end_date from trips, region_ports where trips.region_name=region_ports.region_name;'
-
-
-List of ports with the associated reference port:
-
-'select primary_ports.name, primary_ports.name from region_ports, primary_ports where region_ports.port_name=primary_ports.name union select secondary_ports.name, secondary_ports.reference_port from region_ports, secondary_ports where region_ports.port_name=secondary_ports.name;'
-
---]]
