@@ -1,0 +1,104 @@
+Tide Calculations
+#################
+
+When planning a voyage, it is important to know the times of high and 
+low tides to ensure that it is safe to pass over shallow ground, or
+underneath low bridges or power lines. The tides can also be used to
+predict direction and strength of current around headlands and bays.
+
+Tide predications tables are produced by various authorities around
+the world. In New Zealand, they are published by LINZ.
+
+The tide predictions published by LINZ are available in both a printable 
+format (PDF) and a machine-readable format (CSV).
+
+The time and height of the tide is predicted for each high and low tide at
+a few ports around the country. These 15 or 20 ports are called primary ports.
+
+The time and height of the tide can be very different at places not very far
+from the few primary ports. LINZ publishes coefficients to calculate the 
+time and height of tide at many other secondary ports, based on the
+predictions for the associated primary port.
+
+
+Calculations
+============
+
+Time of tide at a secondary port
+--------------------------------
+
+The time of a high (low) tide at a secondary port is calculated by adding
+an offset to the time of the high (low) tide at the corresponding primary
+port.
+
+
+Height of tide at a secondary port
+----------------------------------
+
+The range of the tide
+
+  h_secondary = MSL_secondary + (h_primary - MSL_primary) * ratio_secondary)
+
+
+Trip planning
+=============
+
+A trip being planned will take place over a period of time, and will include
+a number of ports of interest. The set of ports of interest are collected 
+into a group so that the same group can be used to plan a number of different
+trips in the same region.
+
+Ports
+-----
+* Primary port
+* Secondary port
+* Port
+
+Tides
+-----
+* Primary tide event
+* Secondary tide event
+* Tide event
+
+Trip planning
+-------------
+* Trip
+* Region
+* Ports in region
+* Tide events during trip  
+
+Data management
+---------------
+* Port data file
+* Prediction data file
+
+
+Operations
+==========
+
+1. Add port details from a port data file, overriding all port details already
+   loaded
+
+2. Add tide predictions at a primary port, overriding tide predicition at the
+   same port for the same year.
+
+3. Add a new trip, and a new region and associated ports in the region.
+
+4. Show tide events during one or more trips.
+
+
+Decisions
+=========
+
+1. Calculate and store all secondary tide events when a new set of 
+   tide predictions is added.
+   
+2. Calculate them all, but only when needed, using a SQL view.
+   
+3. Calculate and store only the secondary tide events actually needed for 
+   trip planning.
+   
+4. Calculate only the secondary tide events actually needed, and only when
+   needed.
+
+2.

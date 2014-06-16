@@ -51,6 +51,7 @@ local function create_trips()
    ]]))
 
 --[=[
+
    local result = assert(cx:execute([[
       CREATE TRIGGER IF NOT EXISTS create_trip
       AFTER INSERT ON trips
@@ -87,7 +88,7 @@ local function create_trips()
    local result = assert(cx:execute([[
       CREATE VIEW IF NOT EXISTS trip_tide_events
       AS 
-         SELECT trips.region_name, tide_events.port_name, event_time, event_type, height_of_tide 
+         SELECT trips.name as trip_name, tide_events.port_name, event_time, event_type, height_of_tide 
          FROM trips, region_ports, tide_events
          WHERE
                 event_time BETWEEN trips.start_date AND trips.end_date
