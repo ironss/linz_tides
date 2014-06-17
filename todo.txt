@@ -1,7 +1,7 @@
-Import tide predictions into SQL database, rather than parsing CSV. +improvement
+x Import tide predictions into SQL database, rather than parsing CSV. +improvement
 During import, use SQL prepared statements rather than string substitution. +bug
 x Download tide predictions for Auckland 2013, 2014 and 2015.
-
+Why do my triggers not work within sqlite, but they do from 
 
 
 Things to plan
