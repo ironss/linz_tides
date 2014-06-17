@@ -202,7 +202,6 @@ local function populate_trips()
 end
 
 
-
 local function rows(connection, statement)
    local cur = assert(connection:execute(statement))
    return function()
