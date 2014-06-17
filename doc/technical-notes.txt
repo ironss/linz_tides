@@ -87,8 +87,9 @@ Operations
 4. Show tide events during one or more trips.
 
 
-Decisions
-=========
+
+Decisions to make
+=================
 
 1. Calculate and store all secondary tide events when a new set of 
    tide predictions is added.
@@ -100,5 +101,3 @@ Decisions
    
 4. Calculate only the secondary tide events actually needed, and only when
    needed.
-
-2.
