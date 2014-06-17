@@ -44,7 +44,6 @@ local function create_tables()
          mean_sea_level REAL,
          
          PRIMARY KEY (name)
-         FOREIGN KEY (name) REFERENCES ports(name)
       );
    ]]))
    
@@ -62,7 +61,6 @@ local function create_tables()
          range_ratio REAL,
          
          PRIMARY KEY (name)
-         FOREIGN KEY (name) REFERENCES ports(name)
          FOREIGN KEY (reference_port) REFERENCES primary_ports(name)
       );
    ]]))
