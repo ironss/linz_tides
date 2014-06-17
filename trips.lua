@@ -50,10 +50,8 @@ local function create_trips()
       );
    ]]))
 
---[=[
-
    local result = assert(cx:execute([[
-      CREATE TRIGGER IF NOT EXISTS create_trip
+      CREATE TRIGGER IF NOT EXISTS create_trip_secondary_events
       AFTER INSERT ON trips
       BEGIN
          INSERT OR IGNORE INTO secondary_tide_events
@@ -83,7 +81,20 @@ local function create_trips()
       END;
    ]]))
 
---]=]
+   local result = assert(cx:execute([[
+      CREATE TRIGGER IF NOT EXISTS delete_trip_secondary_events
+      AFTER DELETE ON trips
+      BEGIN
+        DELETE FROM secondary_tide_events
+        WHERE EXISTS
+           (SELECT port_name, event_time FROM trip_tide_events
+           WHERE
+                   trip_tide_events.trip_name = "Abel Tasman 2012-2013"
+              AND  trip_tide_events.port_name = secondary_tide_events.port_name
+              AND  trip_tide_events.event_time = secondary_tide_events.event_time
+        );
+      END;
+   ]]))
 
    local result = assert(cx:execute([[
       CREATE VIEW IF NOT EXISTS trip_tide_events

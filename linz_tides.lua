@@ -31,7 +31,6 @@ local function create_tides()
       );
    ]]))
 
---[=[
    local result = assert(cx:execute([[
       CREATE TABLE IF NOT EXISTS secondary_tide_events (
          port_name VARCHAR(50),
@@ -43,12 +42,12 @@ local function create_tides()
          reference_event_time DATETIME,
 
          PRIMARY KEY (port_name, event_time)
-         FOREIGN KEY (port_name) REFERENCES primary_ports (name)
-         FOREIGN KEY (reference_port_name, reference_event_time) REFERENCES primary_tides_events (port_name, event_time)
+         FOREIGN KEY (port_name) REFERENCES secondary_ports (name)
+         FOREIGN KEY (reference_port_name, reference_event_time) REFERENCES primary_tide_events (port_name, event_time)
       );
    ]]))
---]=]
 
+--[=[
    local result = assert(cx:execute([[
       CREATE VIEW IF NOT EXISTS secondary_tide_events
       AS
@@ -74,6 +73,7 @@ local function create_tides()
            AND   primary_tide_events.port_name=secondary_ports.reference_port 
       ;
    ]]))
+--]=]
 
    local result = assert(cx:execute([[
       CREATE VIEW IF NOT EXISTS tide_events 
