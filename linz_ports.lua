@@ -8,8 +8,8 @@ local ports_filename = 'linz_tides.db'
 local driver = require 'luasql.sqlite3'
 local env = assert(driver.sqlite3())
 local cx = assert(env:connect(ports_filename))
-local result = assert(cx:setautocommit(false))
 local result = assert(cx:execute('PRAGMA foreign_keys = ON'))
+local result = assert(cx:setautocommit(false))
 
 -- TODO: Automatically create ports if database is empty.
 

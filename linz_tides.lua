@@ -10,8 +10,8 @@ local ports_filename = 'linz_tides.db'
 local driver = require 'luasql.sqlite3'
 local env = assert(driver.sqlite3())
 local cx = assert(env:connect(ports_filename))
-local result = assert(cx:setautocommit(false))
 local result = assert(cx:execute('PRAGMA foreign_keys = ON'))
+local result = assert(cx:setautocommit(false))
 
 local function erase_tides()
    local result = cx:execute('DROP TABLE primary_tide_events')
@@ -154,9 +154,10 @@ local function read_linz_tide_filename(filename)
    local f = io.open(filename)
    local events = read_linz_tide_file(f)
 
+   print(content_id, filename)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_tide_event_sources'
-      VALUES ("%s", '%s', datetime('now'), '', '')]], content_id, filename)
+      VALUES ("%s", '%s', datetime('now'), 'Auckland', '')]], content_id, filename)
    ))
 
    local result = assert(cx:commit())

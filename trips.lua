@@ -7,8 +7,8 @@ db_filename = 'linz_tides.db'
 local driver = require 'luasql.sqlite3'
 local env = assert(driver.sqlite3())
 local cx = assert(env:connect(db_filename))
-local result = assert(cx:setautocommit(false))
 local result = assert(cx:execute('PRAGMA foreign_keys = ON'))
+local result = assert(cx:setautocommit(false))
 
 
 local function erase_trips()
@@ -34,9 +34,10 @@ local function create_trips()
          
          PRIMARY KEY (region_name, port_name)
          FOREIGN KEY (region_name) REFERENCES regions (name)
-         FOREIGN KEY (port_name) REFERENCES ports (name)
       );
    ]]))
+-- TODO: Removed this foreign key. Why does it not work when ports is a view?
+--         FOREIGN KEY (port_name) REFERENCES ports (name)
 
    local result = assert(cx:execute([[
       CREATE TABLE trips(
@@ -89,7 +90,7 @@ local function create_trips()
         WHERE EXISTS
            (SELECT port_name, event_time FROM trip_tide_events
            WHERE
-                   trip_tide_events.trip_name = "Abel Tasman 2012-2013"
+                   trip_tide_events.trip_name = OLD.name
               AND  trip_tide_events.port_name = secondary_tide_events.port_name
               AND  trip_tide_events.event_time = secondary_tide_events.event_time
         );
@@ -117,6 +118,7 @@ local function populate_trips()
       'Lyttelton',
       'Akaroa',
       'Abel Tasman',
+      'Banks Peninsula',
       'Marlborough Sounds',
       'Bay of Islands',
    }
@@ -152,6 +154,12 @@ local function populate_trips()
             'Nelson',
          }
       },
+      {  'Banks Peninsula', 
+         { 
+            'French Bay - Akaroa',
+            'Lyttelton',
+         }
+      },
       {  'Bay of Islands',
          {
             'Doves Bay',
@@ -171,7 +179,7 @@ local function populate_trips()
       for _, port in ipairs(ports) do
          print(region, port)
          local result = assert(cx:execute(string.format([[
-            insert into region_ports values('%s', '%s');
+            INSERT INTO region_ports VALUES('%s', '%s');
          ]], region, port)))
       end
    end
@@ -179,11 +187,13 @@ local function populate_trips()
 
    local trips = 
    {
-      { 'Abel Tasman 2011-2012',    'Abel Tasman',    '2011-12-22', '2012-01-08' },
-      { 'Abel Tasman 2012-2013',    'Abel Tasman',    '2012-12-20', '2013-01-10' },
-      { 'Abel Tasman 2013-2014',    'Abel Tasman',    '2013-12-14', '2014-01-05' },
-      { 'Port Levy 2014-02-20',     'Lyttelton',      '2014-02-20', '2014-02-21' },
-      { 'Bay of Islands 2014-2015', 'Bay of Islands', '2014-12-15', '2015-01-15' },
+      { 'Abel Tasman 2011-2012',      'Abel Tasman',     '2011-12-22', '2012-01-08' },
+      { 'Abel Tasman 2012-2013',      'Abel Tasman',     '2012-12-20', '2013-01-10' },
+      { 'Abel Tasman 2013-2014',      'Abel Tasman',     '2013-12-14', '2014-01-05' },
+      { 'Port Levy 2014-02-20',       'Lyttelton',       '2014-02-20', '2014-02-21' },
+      { 'Akaroa 2014-02-20',          'Akaroa',          '2014-02-20', '2014-02-21' },
+      { 'Banks Peninsula 2014-02-20', 'Banks Peninsula', '2014-02-20', '2014-02-21' },
+      { 'Bay of Islands 2014-2015',   'Bay of Islands',  '2014-12-15', '2015-01-15' },
    }
    
    for _, trip in ipairs(trips) do
@@ -194,7 +204,7 @@ local function populate_trips()
       
       print(name, region, start_date, end_date)
       local result = assert(cx:execute(string.format([[
-         insert into trips values('%s', '%s', datetime('%s'), datetime('%s'));
+         INSERT INTO trips VALUES('%s', '%s', datetime('%s'), datetime('%s'));
       ]], name, region, start_date, end_date)))
    end
    local result = assert(cx:commit())
