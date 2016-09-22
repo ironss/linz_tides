@@ -151,7 +151,7 @@ local function populate_trips()
             'Motueka',
             'Kaiteriteri',
             'Astrolabe Roadstead',
-            'Nelson',
+            --'Nelson',
          }
       },
       {  'Banks Peninsula', 
@@ -168,7 +168,7 @@ local function populate_trips()
             'Russell',
             'Waitangi',
             'Marsden Point',
-            'Auckland',
+            --'Auckland',
          },
       },
    }
