@@ -42,7 +42,7 @@ TODO
 
 2. Choose port and time range to generate output for
 
-3. Format output for easy import into spreadsheet
+3. Format output for easy import into spreadsheet::
 
       Date        Nelson      Motueka      Astrolabe…   Sun      Moon
       2013-12-27  0506 H 3.3   0511 H 3.3   0446 H 3.7            R 0129
