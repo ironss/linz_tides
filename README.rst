@@ -44,13 +44,13 @@ TODO
 
 3. Format output for easy import into spreadsheet::
 
-      Date        Nelson      Motueka      Astrolabe…   Sun      Moon
+      Date        Nelson       Motueka      Astrolabe…   Sun      Moon
       2013-12-27  0506 H 3.3   0511 H 3.3   0446 H 3.7            R 0129
       Friday      1111 L 1.4   1130 L 1.5   1051 L 1.4            S 1458
                   1744 H 3.4   1749 H 3.4   1724 H 3.8
                   2353 L 1.2                2333 L 1.1
                   
-      2013-12-28  0012 L 1.3                             R 0554   R 0203
+      2013-12-28               0012 L 1.3                R 0554   R 0203
       Saturday    0615 H 3.3   0620 H 3.3   0555 H 3.7   S 2102   S 1603
                   1228 L 1.3   1247 L 1.4   1208 L 1.3
                   1851 H 3.4   1856 H 3.4   1831 H 3.8
