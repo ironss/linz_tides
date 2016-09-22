@@ -154,10 +154,11 @@ local function read_linz_tide_filename(filename)
    local f = io.open(filename)
    local events = read_linz_tide_file(f)
 
-   print(content_id, filename)
+   local port, year = string.match(filename, '/(%D+) (%d+)')
+   print(content_id, filename, port, year)
    local result = assert(cx:execute(string.format([[
       INSERT INTO 'primary_tide_event_sources'
-      VALUES ("%s", '%s', datetime('now'), 'Auckland', '')]], content_id, filename)
+      VALUES ("%s", '%s', datetime('now'), "%s", "%s")]], content_id, filename, port, year)
    ))
 
    local result = assert(cx:commit())
