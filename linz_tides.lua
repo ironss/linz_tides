@@ -188,10 +188,10 @@ local function get_events_primary(port, start_date, end_date)
 end
 
 local function get_events_secondary(port, start_date, end_date)
-   print(port.name)
-   for k, v in pairs(port) do
-      print(k, v)
-   end
+   --print(port.name)
+   --for k, v in pairs(port) do
+   --   print(k, v)
+   --end
    local secondary_port = ports.find_secondary(port.name)
    local reference_port = ports.find(secondary_port.reference_port)
    local primary_events = get_events_primary(reference_port, start_date, end_date)
