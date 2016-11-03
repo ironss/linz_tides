@@ -1,0 +1,53 @@
+# Basic query
+
+sqlite3 linz_tides.db "select port_name,event_time,event_type,height_of_tide from trip_tide_events where trip_name = 'Abel Tasman 2016-11';"
+
+# Format columns nicely
+
+sqlite3 linz_tides.db <<EOF
+.mode tabs
+select port_name, strftime('%Y-%m-%d', event_time), (strftime('%H:%M',event_time) || ' ' || upper(substr(event_type, 1, 1)) || ' ' || printf('%3.1fm', height_of_tide)) as details from trip_tide_events where trip_name = 'Abel Tasman 2016-11';
+EOF
+
+
+# Format query nicely
+
+sqlite3 linz_tides.db <<EOF
+.mode tabs
+SELECT 
+   port_name, 
+   STRFTIME('%Y-%m-%d', event_time),
+   STRFTIME('%H:%M',event_time) || ' ' || UPPER(SUBSTR(event_type, 1, 1)) || ' ' || PRINTF('%3.1fm', height_of_tide) AS details 
+FROM trip_tide_events 
+WHERE trip_name = 'Abel Tasman 2016-11';
+EOF
+
+
+# Coalesce all events on each day into a single cell
+# * Formatted as CSV
+# * With a LF character between events in a cell (note the embedded LF character 
+#   in the GROUP_CONCAT() function).
+#
+
+sqlite3 linz_tides.db <<EOF
+.mode csv
+SELECT
+    port_name, 
+    date, 
+    GROUP_CONCAT(details, '
+')
+FROM ( 
+    SELECT 
+        port_name, 
+        STRFTIME('%Y-%m-%d', event_time) as date,
+        STRFTIME('%H:%M',event_time) || ' ' || UPPER(SUBSTR(event_type, 1, 1)) || ' ' || PRINTF('%3.1fm', height_of_tide) AS details 
+    FROM 
+        trip_tide_events 
+    WHERE 
+        trip_name = 'Abel Tasman 2016-11'
+    )
+GROUP BY 
+    port_name, date
+;
+EOF
+
