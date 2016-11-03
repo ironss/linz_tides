@@ -190,6 +190,8 @@ local function populate_trips()
       { 'Abel Tasman 2011-2012',      'Abel Tasman',     '2011-12-22', '2012-01-08' },
       { 'Abel Tasman 2012-2013',      'Abel Tasman',     '2012-12-20', '2013-01-10' },
       { 'Abel Tasman 2013-2014',      'Abel Tasman',     '2013-12-14', '2014-01-05' },
+      { 'Abel Tasman 2016-03',        'Abel Tasman',     '2016-03-25', '2016-03-30' },
+      { 'Abel Tasman 2016-11',        'Abel Tasman',     '2016-11-07', '2016-11-17' },
       { 'Port Levy 2014-02-20',       'Lyttelton',       '2014-02-20', '2014-02-21' },
       { 'Akaroa 2014-02-20',          'Akaroa',          '2014-02-20', '2014-02-21' },
       { 'Banks Peninsula 2014-02-20', 'Banks Peninsula', '2014-02-20', '2014-02-21' },
