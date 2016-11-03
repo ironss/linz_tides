@@ -23,7 +23,7 @@ WHERE trip_name = 'Abel Tasman 2016-11';
 EOF
 
 
-# Coalesce all events on each day into a single cell
+# Group all events on each day into a single cell
 # * Formatted as CSV
 # * With a LF character between events in a cell (note the embedded LF character 
 #   in the GROUP_CONCAT() function).
@@ -49,6 +49,46 @@ FROM (
     )
 GROUP BY 
     port_name, date
+;
+EOF
+) | tee out.txt
+
+
+
+# Group tide events for each day into a single row, with event for each
+# port in its own column.
+
+(
+sqlite3 linz_tides.db <<EOF
+.mode csv
+.header on
+WITH x (port_name, date, details) AS (
+    SELECT
+        port_name, 
+        date, 
+        GROUP_CONCAT(details, '
+') AS details
+    FROM ( 
+        SELECT 
+            port_name, 
+            STRFTIME('%Y-%m-%d', event_time) AS date,
+            STRFTIME('%H:%M',event_time) || ' ' || UPPER(SUBSTR(event_type, 1, 1)) || ' ' || PRINTF('%3.1fm', height_of_tide) AS details 
+        FROM 
+            trip_tide_events 
+        WHERE 
+            trip_name = 'Abel Tasman 2016-11'
+        )
+    GROUP BY 
+        port_name, date
+    )
+SELECT 
+    date as 'Date',
+    (select b.details from x b where b.date = x.date and b.port_name = 'Motueka') as 'Motueka',
+    (select a.details from x a where a.date = x.date and a.port_name = 'Kaiteriteri') as 'Kaiteriteri',
+    (select c.details from x c where c.date = x.date and c.port_name = 'Astrolabe Roadstead') as 'Astrolabe Roadstead'
+FROM x
+GROUP BY
+    date
 ;
 EOF
 ) | tee out.txt
