@@ -29,6 +29,7 @@ EOF
 #   in the GROUP_CONCAT() function).
 #
 
+(
 sqlite3 linz_tides.db <<EOF
 .mode csv
 SELECT
@@ -50,4 +51,5 @@ GROUP BY
     port_name, date
 ;
 EOF
+) | tee out.txt
 
