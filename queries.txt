@@ -93,5 +93,5 @@ GROUP BY
     date
 ;
 EOF
-) | tee out.txt
+) | tee "Abel Tasman 2016-11.csv"
 
