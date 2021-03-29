@@ -1,7 +1,27 @@
 linz_tides
 ##########
 
-Lua modules to calculate New Zealand tide prediction from the LINZ tide data.
+Predict tides at various places around New Zealand tide from LINZ tide data.
+
+
+Instructions
+============
+
+1. Decide on the prediction dates. I usually allow 1 day before and 2--3
+   days after the planned travel.
+
+2. Decide on the region that you will be travelling, and the primary and
+   secondary ports in that region that you want predictions for.
+   
+3. Create a 'trip', with a name that ties together the region you will 
+   be travelling in and the dates of the trip.
+
+4. Download tide tables for the primary ports involved over the dates of 
+   travel.
+   
+5. Ensure that the secondary ports data is up-to-date.
+
+6. 
 
 
 How big will the database be

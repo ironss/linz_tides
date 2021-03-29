@@ -2,7 +2,8 @@
 
 db_filename = 'linz_tides.db'
 
-local ports_filename = 'secondaryports2013-14.csv'
+--local ports_filename = 'secondary-ports-2017-2018.csv'
+local ports_filename = 'secondary-ports-2019-20-fixed.csv'
 local tides_filenames = {}
 local f = io.popen('ls -1 tide_data')
 for l in f:lines() do
@@ -20,7 +21,8 @@ local trips = require 'trips'
 --ports.erase_tables()
 
 ports.create_tables()
-ports.populate_tables('secondaryports2013-14.csv')
+--ports.populate_tables('secondaryports2013-14.csv')
+ports.populate_tables(ports_filename)
 
 tides.create_tables()
 for _, fn in ipairs(tides_filenames) do

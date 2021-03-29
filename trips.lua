@@ -121,6 +121,8 @@ local function populate_trips()
       'Banks Peninsula',
       'Marlborough Sounds',
       'Bay of Islands',
+      'Havelock -- Tennysson Inlet',
+      'Tasman Bay',
    }
    
    for _, region in ipairs(regions) do
@@ -171,6 +173,25 @@ local function populate_trips()
             --'Auckland',
          },
       },
+      { 'Havelock -- Tennysson Inlet',
+        {
+            'Nelson',
+            'Havelock',
+            'Elaine Bay',
+        },
+      },
+      { 'Tasman Bay',
+        {
+            'Greville Harbour',
+            'Croisilles Harbour - Kotiro Point',
+            'Nelson',
+            'Mapua',
+            'Motueka',
+            'Kaiteriteri',
+            'Astrolabe Roadstead',
+            'Tarakohe',
+        },
+      },
    }
 
    for _, rp in ipairs(region_ports) do
@@ -192,10 +213,14 @@ local function populate_trips()
       { 'Abel Tasman 2013-2014',      'Abel Tasman',     '2013-12-14', '2014-01-05' },
       { 'Abel Tasman 2016-03',        'Abel Tasman',     '2016-03-25', '2016-03-30' },
       { 'Abel Tasman 2016-11',        'Abel Tasman',     '2016-11-07', '2016-11-17' },
+      { 'Abel Tasman 2017-2018',      'Abel Tasman',     '2017-12-20', '2018-01-12' },
+      { 'Abel Tasman 2018-10',        'Abel Tasman',     '2018-10-05', '2018-10-15' },
       { 'Port Levy 2014-02-20',       'Lyttelton',       '2014-02-20', '2014-02-21' },
       { 'Akaroa 2014-02-20',          'Akaroa',          '2014-02-20', '2014-02-21' },
       { 'Banks Peninsula 2014-02-20', 'Banks Peninsula', '2014-02-20', '2014-02-21' },
       { 'Bay of Islands 2014-2015',   'Bay of Islands',  '2014-12-15', '2015-01-15' },
+      { 'Tennysson Inlet 2020-01',    'Havelock -- Tennysson Inlet', '2019-12-30', '2020-01-08' },
+      { 'Tasman Bay 2020-01',         'Tasman Bay', '2019-12-30', '2020-01-08' },
    }
    
    for _, trip in ipairs(trips) do

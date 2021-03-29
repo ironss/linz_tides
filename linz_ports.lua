@@ -154,21 +154,21 @@ local function create_linz_ports_database(filename)
    local ports = {}
    for l in f:lines() do
       --print(l)
-      local no, name, latd, latm, longd, longm, meanHW, _, meanLW, _, _, _, _, _, MSL, ratio = l:match('^(.-),(.-),(.-),(.-),(.-),(.-)W?,(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-).*$')
---      print(no, name, latd, latm, longd, longm, meanHW, meanLW, MSL, ratio)
+      local no, name, latd, latm, longd, longm, meanHWofs, _, meanLWofs, _, _, _, _, _, MSL, ratio = l:match('^(.-),(.-),(.-),(.-),(.-),(.-)W?,(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-).*$')
+--      print(no, name, latd, latm, longd, longm, meanHWofs, meanLWofs, MSL, ratio)
       
       if no ~= '' then  -- Avoid blank lines and the region heading lines
          local port
          local latitude = tonumber(latd) + tonumber(latm) / 60
          local longitude = tonumber(longd) + tonumber(longm) / 60
 
-         if meanHW == 'hhmm'then -- Avoid primary ports, which have no mean_hw or mean_lw offset
+         if meanHWofs == 'hhmm'then -- Avoid primary ports, which have no mean_hw or mean_lw offset
             name=port_name_translation[name]
             Primary_Port_new{ no=no, name=name, latitude=latitude, longitude=longitude, reference=nil, MSL=tonumber(MSL)}
             reference = name
          else
-            local high_delta_mean = time_offset(meanHW)
-            local low_delta_mean = time_offset(meanLW)
+            local high_delta_mean = time_offset(meanHWofs)
+            local low_delta_mean = time_offset(meanLWofs)
 
             Secondary_Port_new{ no=no, name=name, latitude=latitude, longitude=longitude, reference=reference, high_delta_mean=high_delta_mean, low_delta_mean=low_delta_mean, MSL=tonumber(MSL) or 0, ratio=tonumber(ratio) or 1 }
          end

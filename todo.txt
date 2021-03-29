@@ -14,3 +14,12 @@ Things to plan
 5. Find places to get food, etc.
 
 
+
+
+
+
+* Add new tide data, rather than re-creating the whole database from scratch.
+* Add a new trip, rather than re-recreating the whole database from scratch.
+* Secondary port data changes with time. Support having multiple offsets 
+  from primary port, so that we can re-create old predictions.
+
