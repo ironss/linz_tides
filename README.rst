@@ -4,6 +4,47 @@ linz_tides
 Predict tides at various places around New Zealand tide from LINZ tide data.
 
 
+Purpose
+=======
+
+* Calculate times of high and low tide at selected locations (ports)
+  for specific time periods
+  
+    * eg. tides at ports around Tasman Bay (Nelson, Port Motueka, Kaiteriteri, etc)
+      between Christmas and New Year 2021
+
+* Interpolate between tidal extremes to calculate the tide height at times between
+  the extremes, to allow plotting of a graph
+
+
+Todo
+====
+
+[X] Import tidal data for primary ports from LINZ tidal tables in CSV format
+  
+[ ] Import secondary port data from LINZ data in CSV format
+
+[ ] Calculate tidal extremes for secondary ports
+
+    [ ] ... when new primary port data is added
+    
+    [ ] ... from existing primary port data
+    
+    [ ] ... when a forecast for a range of dates is requested
+
+[ ] Format tidal extremes into a compact CSV format
+
+[X] Calculate tidal height at a time between extremes at a specific primary port
+
+    [ ] ... at a specific secondary port
+
+[X] Create a Munin plugin to calculate tidal height at a port, at the time the
+    request is made
+
+    [ ] Install Munin tides plugin on a suitable server, and hook up to a 
+        suitable Munin master
+
+
 Instructions
 ============
 
@@ -24,13 +65,28 @@ Instructions
 6. 
 
 
-How big will the database be
-----------------------------
 
-* Number of ports:  250  (15 primary, 220 secondary)
-* Number of events: 1460 per year per port
-* Number of events per year: 365000
+Database size
+=============
 
+Extremes
+--------
+
+* Number of ports:  ~250  (15 primary, 220 secondary)
+
+* Number of events: 1460 per year per port (4 per day for 365 days)
+
+* Number of events: 365000 per year (1460 per year per port for 250 ports
+
+
+Interpolations
+--------------
+
+* Number of points (5 minutes): 105120 per port per year
+
+* Number of points (5 minutes): 26 million per year (105 K x 250 ports)
+
+* 
 However, we only create secondary tide events when we create a trip, for the
 ports in the region where the trip occurs, and for the dates associated with
 the trip.
