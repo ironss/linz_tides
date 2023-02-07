@@ -2,7 +2,7 @@ import sqlite3
 import math
 
 
-def tide_interpolate(db, port, time_ts):
+def tides_interpolate(db, port, time_ts):
     con = sqlite3.connect(db)
     res = con.execute("""
         WITH
@@ -71,5 +71,5 @@ if __name__ == '__main__':
 
     for port in ports:
         for dt in timestamps_dt:
-            _, _, height = tide_interpolate(db_name, port, dt.timestamp())
+            _, _, height = tides_interpolate(db_name, port, dt.timestamp())
             print(port, dt, height)
