@@ -1,13 +1,50 @@
-#! /bin/sh
+#! /usr/bin/python3
 
-csvfilename=${1?"Must provide CSV filename"}
+import sqlite3
+import linz_normalize
 
-echo Importing $csvfilename...
+def tide_import(db, tides):
+    con = sqlite3.connect(db)
+    with con:
+        con.execute("""
+        	CREATE TABLE IF NOT EXISTS tides ( port TEXT, timestamp INTEGER, height REAL, source TEXT);
+    	""")
 
-sqlite3 linz_tides.db <<EOF
-CREATE TABLE IF NOT EXISTS tides ( port TEXT, datetime TEXT, timestamp INTEGER, height REAL); 
-.import --csv $csvfilename tides
-EOF
+        con.execute("""
+                DELETE FROM tides WHERE source = :filename
+        """, { 'filename': filename } )
 
-echo Importing $csvfilename...done
+        for tide in tides:
+            print(tide)
+            con.execute("""
+                INSERT INTO tides VALUES ( :port, :timestamp, :height, :source )
+            """, {
+                'port': tide[0],
+                'timestamp': tide[1].timestamp(),
+                'height': tide[2],
+                'source': tide[3],
+            })
 
+
+
+if __name__ == '__main__':
+    import argparse
+    import os.path
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description="Import tide predictions from published data files"
+    )
+
+    parser.add_argument('-d', '--database', default='tides_db.sqlite3')
+    parser.add_argument('filename', nargs='+')
+    args = parser.parse_args()
+
+    for filename in args.filename:
+        port_name = os.path.split(filename)[1][:-9]
+        print("importing: {}: {}...".format(filename, port_name, filename))
+        with open(filename, encoding='iso8859-1') as f_in:
+            tides = linz_normalize.linz_normalize(filename, port_name, f_in)
+
+        tide_import(args.database, tides)
+        print("importing: {}: {}...done".format(filename, port_name))
