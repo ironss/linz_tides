@@ -1,6 +1,6 @@
 linz_tides.db
 out.txt
 .~lock*
-*.csv
+tide_data/*.csv
 *.ods
 
