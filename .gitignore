@@ -3,4 +3,4 @@ out.txt
 .~lock*
 tide_data/*.csv
 *.ods
-
+__pycache__

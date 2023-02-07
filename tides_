@@ -1,0 +1,50 @@
+#! /usr/bin/python3
+
+import os
+import sys
+import time
+
+import tide_interpolate
+
+
+verbose = True if os.getenv('MUNIN_DEBUG') == '1' else False
+
+def verboselog(s):
+    if verbose:
+        sys.stderr.write('{}: {}\n'.format(plugin_name, s))
+
+
+
+def fetch(portname, timestamp):
+    db = '/var/lib/munin/linz_tides.db'
+    a, b, c = tide_interpolate.tide_interpolate(db, portname, timestamp)
+    print('tide_height.value', c)
+    
+def config(portname):
+    print("host_name {}.place".format(portname))
+    print("graph_title Tide")
+    print("graph_category other")
+    print("graph_vlabel Tide height (m)")
+    print("tide_height.label Tide height (m)")
+    
+    
+
+_, portname = sys.argv[0].split('_')
+time_ts = time.time()
+
+if len(sys.argv) > 1:
+    cmd = sys.argv[1]
+    if cmd == 'config':
+        config(portname)
+        if True:  # if we support dirtyconfig
+            fetch(portname, time_ts)
+        sys.exit(0)
+    
+    if cmd == 'suggest':
+        sys.exit(0)
+        
+    verboselog('unknown argument "{}"'.format(cmd))
+    exit(1)
+
+fetch(portname, time_ts)
+
