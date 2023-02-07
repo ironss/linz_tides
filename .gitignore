@@ -1,5 +1,7 @@
 linz_tides.db
+tides_db.sqlite3
 out.txt
+out/
 .~lock*
 tide_data/*.csv
 *.ods
