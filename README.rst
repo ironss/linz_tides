@@ -36,7 +36,7 @@ Todo
 
 [X] Calculate tidal height at a time between extremes at a specific primary port
 
-    [ ] ... at a specific secondary port
+    [ ] ... at a specific secondary port -- should Just Work (tm)
 
 [X] Create a Munin plugin to calculate tidal height at a port, at the time the
     request is made
@@ -76,7 +76,12 @@ Extremes
 
 * Number of events: 1460 per year per port (4 per day for 365 days)
 
-* Number of events: 365000 per year (1460 per year per port for 250 ports
+* Number of events: 22000 per year (1460 per year per port for 15 primary ports)
+
+* Number of events: 365000 per year (1460 per year per port for 250 ports)
+
+We can avoid calculating events for all secondary ports by only calculating
+events for specific trips -- a small number of ports over a small timeframe.
 
 
 Interpolations
@@ -84,14 +89,10 @@ Interpolations
 
 * Number of points (5 minutes): 105120 per port per year
 
+* Number of points (5 minutes): 1.5 million per year (105 K x 15 primary ports)
+
 * Number of points (5 minutes): 26 million per year (105 K x 250 ports)
 
-* 
-However, we only create secondary tide events when we create a trip, for the
-ports in the region where the trip occurs, and for the dates associated with
-the trip.
-
-So the database is relatively small.
 
 
 Features
