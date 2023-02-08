@@ -27,8 +27,11 @@ def tides_interpolate(db, port, time_ts):
     """, {'port':port, 'ts':time_ts})
 
     rows = res.fetchall()
-    ts_prev, height_prev = rows[0]
-    ts_next, height_next = rows[1]
+    try:
+        ts_prev, height_prev = rows[0]
+        ts_next, height_next = rows[1]
+    except IndexError:
+        return port, time_ts, None
 
     phase = (time_ts - ts_prev) / (ts_next - ts_prev) * math.pi
     height = (1 + math.cos(phase))/2 * (height_prev - height_next) + height_next
