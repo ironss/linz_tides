@@ -13,28 +13,30 @@ def verboselog(s):
         sys.stderr.write('{}: {}\n'.format(plugin_name, s))
 
 
-def fetch(portname, timestamp):
+def fetch(hostname, portname, timestamp):
     db = '/var/lib/munin/tides_db.sqlite3'
     port_name, ts, height = tides_interpolate.tides_interpolate(db, portname, timestamp)
     print('tide_height.value', height)
 
-def config(portname):
-    print("host_name {}.place".format(portname))
-    print("graph_title Tide")
+def config(hostname, portname):
+    print("host_name {}".format(hostname))
+    print("graph_title Tide height")
     print("graph_category other")
     print("graph_vlabel Tide height (m)")
     print("tide_height.label Tide height (m)")
 
 
-_, portname = sys.argv[0].split('_')
+_, hostname = sys.argv[0].split('_')
+portname = hostname.split('.')[0]
+
 time_ts = time.time()
 
 if len(sys.argv) > 1:
     cmd = sys.argv[1]
     if cmd == 'config':
-        config(portname)
+        config(hostname, portname)
         if True:  # if we support dirtyconfig
-            fetch(portname, time_ts)
+            fetch(hostname, portname, time_ts)
         sys.exit(0)
 
     if cmd == 'suggest':
@@ -43,4 +45,5 @@ if len(sys.argv) > 1:
     verboselog('unknown argument "{}"'.format(cmd))
     exit(1)
 
-fetch(portname, time_ts)
+fetch(hostname, portname, time_ts)
+
