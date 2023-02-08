@@ -16,7 +16,7 @@ def verboselog(s):
 def fetch(hostname, portname, timestamp):
     db = '/var/lib/munin/tides_db.sqlite3'
     port_name, ts, height = tides_interpolate.tides_interpolate(db, portname, timestamp)
-    print('tide_height.value', height)
+    print('tide_height.value', height if height is not None else 'U')
 
 def config(hostname, portname):
     print("host_name {}".format(hostname))
@@ -27,7 +27,7 @@ def config(hostname, portname):
 
 
 _, hostname = sys.argv[0].split('_')
-portname = hostname.split('.')[0]
+portname = hostname.split('.')[0].replace('-', ' ')
 
 time_ts = time.time()
 
