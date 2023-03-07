@@ -32,7 +32,7 @@ def fetch(hostname, location, timestamp):
     print('tide_height.value', height if height is not None else 'U')
 
 def config(hostname, location):
-    print("host_name {}.place".format(hostname))
+    print("host_name {}".format(hostname))
     print("graph_title Tide")
     print("graph_info {att}".format(att=attribution)),
     print("graph_category marine")
