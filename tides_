@@ -7,6 +7,12 @@ import time
 import tides_interpolate
 
 
+hostname_map_port = {
+    'lyttelton.nz.place' : ( 'Lyttelton, NZ', ( 'LINZ', 'Lyttelton'           )),
+    'nelson.nz.place'    : ( 'Nelson, NZ',    ( 'LINZ', 'Lyttelton'           )),
+    'scott-base.nz.place': ( 'Scott Base, Antarctica', ( 'LINZ', 'Scott Base' )),
+}
+
 verbose = True if os.getenv('MUNIN_DEBUG') == '1' else False
 def verboselog(s):
     if verbose:
@@ -21,7 +27,7 @@ def fetch(hostname, portname, timestamp):
 def config(hostname, portname):
     print("host_name {}".format(hostname))
     print("graph_title Tide height")
-    print("graph_category other")
+    print("graph_category marine")
     print("graph_vlabel Tide height (m)")
     print("tide_height.label Tide height (m)")
 
