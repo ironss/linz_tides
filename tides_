@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 
+import json
 import os
 import sys
 import time
@@ -7,42 +8,46 @@ import time
 import tides_interpolate
 
 
-hostname_map_port = {
-    'lyttelton.nz.place' : ( 'Lyttelton, NZ', ( 'LINZ', 'Lyttelton'           )),
-    'nelson.nz.place'    : ( 'Nelson, NZ',    ( 'LINZ', 'Lyttelton'           )),
-    'scott-base.nz.place': ( 'Scott Base, Antarctica', ( 'LINZ', 'Scott Base' )),
-}
-
 verbose = True if os.getenv('MUNIN_DEBUG') == '1' else False
 def verboselog(s):
     if verbose:
         sys.stderr.write('{}: {}\n'.format(plugin_name, s))
 
 
-def fetch(hostname, portname, timestamp):
+locations_fn = '/var/lib/munin/locations.json'
+with open(locations_fn) as f:
+    locations = json.load(f)
+
+plugin_name = os.path.basename(sys.argv[0])
+script_name, hostname = plugin_name.split('_')
+location = locations[hostname]
+
+attribution = "Location data provided by LINZ"
+
+
+def fetch(hostname, location, timestamp):
     db = '/var/lib/munin/tides_db.sqlite3'
+    portname = location['port'][1]
     port_name, ts, height = tides_interpolate.tides_interpolate(db, portname, timestamp)
     print('tide_height.value', height if height is not None else 'U')
 
-def config(hostname, portname):
-    print("host_name {}".format(hostname))
-    print("graph_title Tide height")
+def config(hostname, location):
+    print("host_name {}.place".format(hostname))
+    print("graph_title Tide")
+    print("graph_info {att}".format(att=attribution)),
     print("graph_category marine")
     print("graph_vlabel Tide height (m)")
     print("tide_height.label Tide height (m)")
 
-
-_, hostname = sys.argv[0].split('_')
-portname = hostname.split('.')[0].replace('-', ' ')
 
 time_ts = time.time()
 
 if len(sys.argv) > 1:
     cmd = sys.argv[1]
     if cmd == 'config':
-        config(hostname, portname)
+        config(hostname, location)
         if True:  # if we support dirtyconfig
-            fetch(hostname, portname, time_ts)
+            fetch(hostname, location, time_ts)
         sys.exit(0)
 
     if cmd == 'suggest':
@@ -51,5 +56,4 @@ if len(sys.argv) > 1:
     verboselog('unknown argument "{}"'.format(cmd))
     exit(1)
 
-fetch(hostname, portname, time_ts)
-
+fetch(hostname, location, time_ts)
