@@ -7,22 +7,23 @@ def tide_import(db, tides):
     con = sqlite3.connect(db)
     with con:
         con.execute("""
-        	CREATE TABLE IF NOT EXISTS tides ( port TEXT, timestamp INTEGER, height REAL, source TEXT);
-    	""")
+            CREATE TABLE IF NOT EXISTS tides ( port_authority TEXT, port_name TEXT, timestamp INTEGER, height REAL, source TEXT);
+        """)
 
         con.execute("""
-                DELETE FROM tides WHERE source = :filename
+                DELETE FROM tides WHERE source = :filename;
         """, { 'filename': filename } )
 
         for tide in tides:
             print(tide)
             con.execute("""
-                INSERT INTO tides VALUES ( :port, :timestamp, :height, :source )
+                INSERT INTO tides VALUES ( :pauth, :port, :timestamp, :height, :source )
             """, {
-                'port': tide[0],
-                'timestamp': tide[1].timestamp(),
-                'height': tide[2],
-                'source': tide[3],
+                'pauth': tide[0],
+                'port': tide[1],
+                'timestamp': tide[2].timestamp(),
+                'height': tide[3],
+                'source': tide[4],
             })
 
 

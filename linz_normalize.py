@@ -29,32 +29,32 @@ def linz_normalize(filename, port_name, fin):
             except KeyError:
                 break
 
-                
-            tide = [ port_name, dt, height_of_tide, filename ]
+
+            tide = [ 'LINZ', port_name, dt, height_of_tide, filename ]
             tides.append(tide)
-    
+
     return tides
-    
+
 
 if __name__ == '__main__':
     import argparse
     import sys
-    
+
     parser = argparse.ArgumentParser(
         description="Normalize tides predictions from LINZ CSV files."
     )
-    
+
     parser.add_argument('filename', nargs='+')
     args = parser.parse_args()
 
     for filename in args.filename:
         port_name = filename[:-9]
-    
+
         with open(filename, encoding='iso8859-1') as f_in:
             tides = linz_normalize(filename, port_name, f_in)
-                
+
         fout = sys.stdout
         writer = csv.writer(fout)
         for tide in tides:
-            writer.writerow(tide)    
+            writer.writerow(tide)
 
