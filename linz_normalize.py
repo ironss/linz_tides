@@ -5,6 +5,7 @@ import zoneinfo
 tzname = 'Pacific/Auckland'
 tz = zoneinfo.ZoneInfo(tzname)
 
+
 def linz_normalize(filename, port_name, fin):
     reader = csv.reader(fin)
     tides = []

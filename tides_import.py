@@ -3,6 +3,7 @@
 import sqlite3
 import linz_normalize
 
+
 def tide_import(db, tides):
     con = sqlite3.connect(db)
     with con:
