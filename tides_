@@ -22,7 +22,7 @@ plugin_name = os.path.basename(sys.argv[0])
 script_name, hostname = plugin_name.split('_')
 location = locations[hostname]
 
-attribution = "Location data provided by LINZ"
+attribution = "Tide data provided by LINZ"
 
 
 def fetch(hostname, location, timestamp):

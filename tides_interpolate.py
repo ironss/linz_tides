@@ -9,14 +9,14 @@ def tides_interpolate(db, port, time_ts):
             t1 as (
                 SELECT timestamp, height
                 FROM tides
-                WHERE port = :port AND timestamp >= :ts
+                WHERE port_name = :port AND timestamp >= :ts
                 ORDER BY timestamp ASC
                 LIMIT 1
             ),
             t2 as (
                 SELECT timestamp, height
                 FROM tides
-                WHERE port = :port AND timestamp < :ts
+                WHERE port_name = :port AND timestamp < :ts
                 ORDER BY timestamp DESC
                 LIMIT 1
             )
